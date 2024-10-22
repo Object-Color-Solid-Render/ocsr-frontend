@@ -3,7 +3,7 @@ import { Canvas, useFrame, extend, useThree } from '@react-three/fiber';
 import { OrbitControls, shaderMaterial } from '@react-three/drei';
 import * as THREE from 'three';
 import { useAppContext } from './AppLayout';
-import { Button, FileInput } from '@mantine/core';
+import { Button, FileInput, localStorageColorSchemeManager } from '@mantine/core';
 
 const CustomShaderMaterial = shaderMaterial(
   { col: new THREE.Color(0xff00ff) },
@@ -36,10 +36,24 @@ type OcsData = {
   fragmentShader: String,
 }
 
+
 export default function ObjectColorSolid() {
   const [ocsData, setOcsData] = useState<OcsData>({geometry: new THREE.BufferGeometry(), vertexShader: '', fragmentShader: ''});
-  const { conePeaks, submitSwitch, wavelengthBounds, responseFileName, wavelengths, setWavelengths, coneResponses, setConeResponses } = useAppContext();
+  
+  // Pass in relevant global state
+  const { 
+    conePeaks, 
+    submitSwitch, 
+    wavelengthBounds, 
+    responseFileName, 
+    wavelengths, setWavelengths, 
+    coneResponses, setConeResponses,
+    sliceDimension,
+    sliceVisible,
+    setSliceVisible
+  } = useAppContext();
 
+  // When necessary, load in the OCS
   useEffect(() => {
     const params = new URLSearchParams({
       minWavelength: wavelengthBounds.min.toString(),
@@ -77,10 +91,38 @@ export default function ObjectColorSolid() {
       .catch(error => console.error('Error fetching data:', error));
   }, [submitSwitch]);
 
+  // Implement the moving slice
+  const [positionY, setPositionY] = useState(1)
+  function MovingYSlice() {
+    const sliceRef = useRef()
+
+    useFrame(() => {
+      if (sliceRef) sliceRef.current.position.y = positionY 
+    })
+  
+    return (
+      <mesh ref={sliceRef} position={[0, positionY, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+        <planeGeometry args={[0.5, 0.5]} />
+        <meshBasicMaterial color="black" wireframe={true} />
+      </mesh>
+    )
+  }
 
   return (
     <div style={{ width: '100%', height: '100%', position: 'relative' }}>
-      <Canvas camera={{ position: [0.43, 0.3, 0.4], fov: 60 }}>
+      <Canvas 
+        camera={{ position: [0.43, 0.3, 0.4], fov: 60 }}
+        onMouseMove={(e) => {
+          // Mouse position -> normalized device coordinates * 2
+          const [smallestY, largestY] = [-0.3, 0.3]
+          const y = (-(e.clientY / window.innerHeight) * 2 + 1) * 0.7
+          setPositionY(Math.min(largestY, Math.max(smallestY, y)))
+        }}  
+        onPointerDown={() => setSliceVisible(false)}
+      >
+        {sliceDimension == 2 && sliceVisible && (
+          <MovingYSlice></MovingYSlice>
+        )}
         {ocsData && (
           <CustomMesh 
             // key={submitSwitch}

@@ -30,20 +30,20 @@ export default function GraphDisplay() {
     return (
         <div>
             <DropdownButton open={open} setOpen={setOpen} leftDropdown={false}></DropdownButton>
-            <DropdownContent open={open} width="600px">
+            <DropdownContent open={open} width={550}>
                <Card shadow="sm" padding="lg" radius="md" withBorder>
                     <Text size="lg" weight={500} mb="md">Cone Responses to Wavelengths</Text>
                     
                     <ResponsiveContainer width="100%" height={400}>
                         <LineChart data={data}>
-                        <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis dataKey="wavelength" label={{ value: 'Wavelength (nm)', position: 'insideBottomRight', offset: -5 }} />
-                        <YAxis label={{ value: 'Response', angle: -90, position: 'insideLeft' }} />
-                        <Tooltip />
-                        <Legend />
-                        <Line type="monotone" dataKey="sResponse" stroke="#8884d8" name="S Cone Response" />
-                        <Line type="monotone" dataKey="mResponse" stroke="#82ca9d" name="M Cone Response" />
-                        <Line type="monotone" dataKey="lResponse" stroke="#ff7300" name="L Cone Response" />
+                            <CartesianGrid strokeDasharray="3 3" />
+                            <XAxis dataKey="wavelength" label={{ value: 'Wavelength (nm)', position: 'insideBottomRight', offset: -5 }} />
+                            <YAxis label={{ value: 'Response', angle: -90, position: 'insideLeft' }} />
+                            <Tooltip />
+                            <Legend />
+                            <Line type="monotone" dataKey="sResponse" stroke="#8884d8" name="S Cone Response" />
+                            <Line type="monotone" dataKey="mResponse" stroke="#82ca9d" name="M Cone Response" />
+                            <Line type="monotone" dataKey="lResponse" stroke="#ff7300" name="L Cone Response" />
                         </LineChart>
                     </ResponsiveContainer>
                 </Card>

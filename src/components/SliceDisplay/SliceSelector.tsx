@@ -5,38 +5,55 @@ import DropdownButton from "../Dropdown/DropdownButton";
 import { useAppContext } from "../AppLayout";
 
 const boxStyle = {
-    margin: 10,
-    padding: 5,
+
 };
 
 export default function SliceSelector() {
     const [open, setOpen] = useState(false);
-    
+    const { sliceDimension, setSliceDimension, sliceVisible, setSliceVisible } = useAppContext();
+
     return (
         <div>
             <DropdownButton open={open} setOpen={setOpen} leftDropdown={true}></DropdownButton>
-            <DropdownContent open={open}>
+            <DropdownContent open={open} width={150}>
                 <Stack gap="m">
                     <Button
                         variant="white"
-                        onClick={() => alert('Action 1')}
+                        onClick={() => {
+                            setSliceDimension(1)
+                            setSliceVisible(true)
+                        }}
                         style={boxStyle}
                     >
-                        1D
+                        1D Ray
                     </Button>
                     <Button
                         variant="white"
-                        onClick={() => alert('Action 2')}
+                        onClick={() => {
+                            setSliceDimension(2)
+                            setSliceVisible(true)
+                        }}
                         style={boxStyle}
                     >
-                        2D
+                        2D Slice
                     </Button>
                     <Button
                         variant="white"
-                        onClick={() => alert('Action 3')}
+                        onClick={() => {
+                            setSliceDimension(3)
+                            setSliceVisible(true)
+                        }}
                         style={boxStyle}
                     >
-                        3D
+                        3D Chunk
+                    </Button>
+
+                    <Button 
+                        variant="white"
+                        onClick={() => {
+                            setSliceVisible(false)
+                        }}>
+                        Unselect
                     </Button>
                 </Stack>
             </DropdownContent>

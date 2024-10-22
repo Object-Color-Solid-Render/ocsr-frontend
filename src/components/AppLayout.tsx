@@ -45,8 +45,10 @@ const headerStyle = (theme: MantineTheme) => ({
 
 type AppContextType = {
   height: number;
+
   sliceDimension: number;
   setSliceDimension: Dispatch<SetStateAction<number>>;
+  
   conePeaks: {
     sConePeak: number;
     mConePeak: number;
@@ -57,10 +59,13 @@ type AppContextType = {
     mConePeak: number;
     lConePeak: number;
   }>>;
+
   submitSwitch: number;
   setSubmitSwitch: Dispatch<SetStateAction<number>>;
+  
   coneResponseType: string;
   setConeResponseType: Dispatch<SetStateAction<string>>;
+  
   wavelengthBounds: {
     min: number;
     max: number;
@@ -69,8 +74,10 @@ type AppContextType = {
     min: number;
     max: number;
   }>>;
+
   responseFileName: string; // **Added**
   setResponseFileName: Dispatch<SetStateAction<string>>; // **Added**
+  
   coneResponses: {
     sConeResponse: Array<number>;
     mConeResponse: Array<number>;
@@ -81,8 +88,12 @@ type AppContextType = {
     mConeResponse: Array<number>;
     lConeResponse: Array<number>;
   }>>;
+  
   wavelengths: Array<number>;
   setWavelengths: Dispatch<SetStateAction<Array<number>>>;
+
+  sliceVisible: boolean;
+  setSliceVisible: Dispatch<SetStateAction<boolean>>;
 };
 
 // **Updated AppContext to include responseFileName**
@@ -114,6 +125,7 @@ const AppContextProvider = ({ children }: { children: ReactNode }) => {
     mConeResponse: [0],
     lConeResponse: [0],
   })
+  const [sliceVisible, setSliceVisible] = useState(false)
   
   // **Initialize responseFileName state**
   const [responseFileName, setResponseFileName] = useState<string>("");
@@ -129,6 +141,7 @@ const AppContextProvider = ({ children }: { children: ReactNode }) => {
       responseFileName, setResponseFileName, 
       wavelengths, setWavelengths,
       coneResponses, setConeResponses,
+      sliceVisible, setSliceVisible
     }}>
       {children}
     </AppContext.Provider>
