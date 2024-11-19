@@ -114,7 +114,16 @@ export default function ObjectColorSolid() {
   return (
     <div style={{ width: '100%', height: '100%', position: 'relative' }}>
       <Canvas 
-        camera={{ position: [0.43, 0.3, 0.4], fov: 60 }}
+        orthographic camera={{    
+            position: [0.43, 0.3, 0.4],
+            zoom: 1,
+            near: 0.1,
+            far: 1000,
+            top: 1,
+            bottom: -1,
+            left: window.innerWidth / window.innerHeight* -1,
+            right: window.innerWidth / window.innerHeight * 1
+        }} 
         onMouseMove={(e) => {
           // Mouse position -> normalized device coordinates * 2
           const [smallestY, largestY] = [-0.3, 0.3]
