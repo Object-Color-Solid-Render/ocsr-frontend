@@ -13,7 +13,7 @@ const CustomShaderMaterial = shaderMaterial(
 
 extend({ CustomShaderMaterial });
 
-function CustomMesh({ geometry, vertexShader, fragmentShader }) {
+export function CustomMesh({ geometry, vertexShader, fragmentShader }) {
   const meshRef = useRef();
   const { clock } = useThree();
 
@@ -30,10 +30,27 @@ function CustomMesh({ geometry, vertexShader, fragmentShader }) {
   return <mesh ref={meshRef} scale={0.5} geometry={geometry} material={material} />;
 }
 
-type OcsData = {
+export type OcsData = {
   geometry: THREE.BufferGeometry,
   vertexShader: String,
   fragmentShader: String,
+}
+
+// Implement the moving slice
+function MovingYSlice() {
+  const sliceRef = useRef()
+  const { positionY } = useAppContext()
+
+  useFrame(() => {
+    if (sliceRef) sliceRef.current.position.y = positionY 
+  })
+
+  return (
+    <mesh ref={sliceRef} position={[0, positionY, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+      <planeGeometry args={[0.5, 0.5]} />
+      <meshBasicMaterial color="black" wireframe={true} />
+    </mesh>
+  )
 }
 
 
@@ -50,7 +67,10 @@ export default function ObjectColorSolid() {
     coneResponses, setConeResponses,
     sliceDimension,
     sliceVisible,
-    setSliceVisible
+    setSliceVisible,
+    sliceSwitch,
+    setSliceSwitch,
+    setPositionY
   } = useAppContext();
 
   // When necessary, load in the OCS
@@ -91,23 +111,6 @@ export default function ObjectColorSolid() {
       .catch(error => console.error('Error fetching data:', error));
   }, [submitSwitch]);
 
-  // Implement the moving slice
-  const [positionY, setPositionY] = useState(1)
-  function MovingYSlice() {
-    const sliceRef = useRef()
-
-    useFrame(() => {
-      if (sliceRef) sliceRef.current.position.y = positionY 
-    })
-  
-    return (
-      <mesh ref={sliceRef} position={[0, positionY, 0]} rotation={[-Math.PI / 2, 0, 0]}>
-        <planeGeometry args={[0.5, 0.5]} />
-        <meshBasicMaterial color="black" wireframe={true} />
-      </mesh>
-    )
-  }
-
   return (
     <div style={{ width: '100%', height: '100%', position: 'relative' }}>
       <Canvas 
@@ -118,7 +121,13 @@ export default function ObjectColorSolid() {
           const y = (-(e.clientY / window.innerHeight) * 2 + 1) * 0.7
           setPositionY(Math.min(largestY, Math.max(smallestY, y)))
         }}  
-        onPointerDown={() => setSliceVisible(false)}
+        onPointerDown={() => {
+            if (sliceVisible) {
+              setSliceVisible(false)
+              setSliceSwitch(sliceSwitch + 1) // Trigger update in the slice display
+            }
+          }
+        }
       >
         {sliceDimension == 2 && sliceVisible && (
           <MovingYSlice></MovingYSlice>

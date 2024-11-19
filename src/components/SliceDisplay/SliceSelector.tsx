@@ -52,7 +52,8 @@ export default function SliceSelector() {
                         variant="white"
                         onClick={() => {
                             setSliceVisible(false)
-                        }}>
+                        }}
+                        >
                         Unselect
                     </Button>
                 </Stack>

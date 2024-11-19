@@ -94,6 +94,12 @@ type AppContextType = {
 
   sliceVisible: boolean;
   setSliceVisible: Dispatch<SetStateAction<boolean>>;
+
+  sliceSwitch: number;
+  setSliceSwitch: Dispatch<SetStateAction<number>>;
+
+  positionY: number;
+  setPositionY: Dispatch<SetStateAction<number>>;
 };
 
 // **Updated AppContext to include responseFileName**
@@ -126,7 +132,9 @@ const AppContextProvider = ({ children }: { children: ReactNode }) => {
     lConeResponse: [0],
   })
   const [sliceVisible, setSliceVisible] = useState(false)
-  
+  const [sliceSwitch, setSliceSwitch] = useState(0);
+  const [positionY, setPositionY] = useState(0)
+
   // **Initialize responseFileName state**
   const [responseFileName, setResponseFileName] = useState<string>("");
 
@@ -141,7 +149,9 @@ const AppContextProvider = ({ children }: { children: ReactNode }) => {
       responseFileName, setResponseFileName, 
       wavelengths, setWavelengths,
       coneResponses, setConeResponses,
-      sliceVisible, setSliceVisible
+      sliceVisible, setSliceVisible,
+      sliceSwitch, setSliceSwitch,
+      positionY, setPositionY,
     }}>
       {children}
     </AppContext.Provider>
