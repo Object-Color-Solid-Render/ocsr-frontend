@@ -45,6 +45,7 @@ const headerStyle = (theme: MantineTheme) => ({
 
 type AppContextType = {
   height: number;
+  width: number;
 
   sliceDimension: number;
   setSliceDimension: Dispatch<SetStateAction<number>>;
@@ -120,7 +121,7 @@ const AppContextProvider = ({ children }: { children: ReactNode }) => {
   });
   const [coneResponseType, setConeResponseType] = useState('Human Trichromat');
   const [submitSwitch, setSubmitSwitch] = useState(1);
-  const { height } = useWindowDimensions(); 
+  const { height, width } = useWindowDimensions(); 
   const [wavelengthBounds, setWavelengthBounds] = useState({
     min: MIN_VISIBLE_WAVELENGTH,
     max: MAX_VISIBLE_WAVELENGTH
@@ -141,6 +142,7 @@ const AppContextProvider = ({ children }: { children: ReactNode }) => {
   return (
     <AppContext.Provider value={{
       height,
+      width,
       sliceDimension, setSliceDimension,
       conePeaks, setConePeaks,
       coneResponseType, setConeResponseType,

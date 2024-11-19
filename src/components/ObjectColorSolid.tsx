@@ -53,6 +53,23 @@ function MovingYSlice() {
   )
 }
 
+function UpdateCamera() {
+  const { camera, size } = useThree();
+
+  useEffect(() => {
+      const updateCamera = () => {
+          const aspect = size.width / size.height;
+          camera.left = aspect * -1;
+          camera.right = aspect * 1;
+          camera.top = 1;
+          camera.bottom = -1;
+          camera.updateProjectionMatrix();
+      };
+      updateCamera();
+  }, [camera, size]);
+
+  return null;
+}
 
 export default function ObjectColorSolid() {
   const [ocsData, setOcsData] = useState<OcsData>({geometry: new THREE.BufferGeometry(), vertexShader: '', fragmentShader: ''});
@@ -114,7 +131,8 @@ export default function ObjectColorSolid() {
   return (
     <div style={{ width: '100%', height: '100%', position: 'relative' }}>
       <Canvas 
-        orthographic camera={{    
+        orthographic 
+        camera={{    
             position: [0.43, 0.3, 0.4],
             zoom: 1,
             near: 0.1,
@@ -138,6 +156,7 @@ export default function ObjectColorSolid() {
           }
         }
       >
+        <UpdateCamera />
         {sliceDimension == 2 && sliceVisible && (
           <MovingYSlice></MovingYSlice>
         )}
