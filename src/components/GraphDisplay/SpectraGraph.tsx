@@ -30,11 +30,11 @@ export default function GraphDisplay() {
     return (
         <div>
             <DropdownButton open={open} setOpen={setOpen} leftDropdown={false}></DropdownButton>
-            <DropdownContent open={open} width={550}>
+            <DropdownContent open={open} width={400}>
                <Card shadow="sm" padding="lg" radius="md" withBorder>
                     <Text size="lg" weight={500} mb="md">Cone Responses to Wavelengths</Text>
                     
-                    <ResponsiveContainer width="100%" height={400}>
+                    <ResponsiveContainer width="100%" height={300}>
                         <LineChart data={data}>
                             <CartesianGrid strokeDasharray="3 3" />
                             <XAxis dataKey="wavelength" label={{ value: 'Wavelength (nm)', position: 'insideBottomRight', offset: -5 }} />

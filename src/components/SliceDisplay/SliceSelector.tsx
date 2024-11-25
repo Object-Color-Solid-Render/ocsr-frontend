@@ -15,7 +15,7 @@ export default function SliceSelector() {
     return (
         <div>
             <DropdownButton open={open} setOpen={setOpen} leftDropdown={true}></DropdownButton>
-            <DropdownContent open={open} width={150}>
+            <DropdownContent open={open} width={250}>
                 <Stack gap="m">
                     <Button
                         variant="white"

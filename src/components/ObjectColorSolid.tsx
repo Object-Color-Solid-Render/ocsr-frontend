@@ -4,6 +4,7 @@ import { OrbitControls, shaderMaterial } from '@react-three/drei';
 import * as THREE from 'three';
 import { useAppContext } from './AppLayout';
 import { Button, FileInput, localStorageColorSchemeManager } from '@mantine/core';
+import { vec3 } from 'three/webgpu';
 
 const CustomShaderMaterial = shaderMaterial(
   { col: new THREE.Color(0xff00ff) },
@@ -13,7 +14,7 @@ const CustomShaderMaterial = shaderMaterial(
 
 extend({ CustomShaderMaterial });
 
-export function CustomMesh({ geometry, vertexShader, fragmentShader }) {
+export function CustomMesh({ geometry, vertexShader, fragmentShader, center }) {
   const meshRef = useRef();
   const { clock } = useThree();
 
@@ -24,6 +25,15 @@ export function CustomMesh({ geometry, vertexShader, fragmentShader }) {
   useFrame(() => {
     if (meshRef.current) {
       material.uniforms.col.value.setHSL(clock.getElapsedTime() % 1, 1, 0.5);
+      const point = new THREE.Vector3(...center)
+      // if (meshRef.current) {
+      //   //meshRef.current.position.sub(point);
+      //   // Add slow rotation
+      //   meshRef.current.rotation.y += 0.01; // Rotate around Y-axis
+      //   meshRef.current.rotation.x += 0.005; // Rotate around X-axis
+      //   meshRef.current.rotation.z += 0.003; // Rotate around Z-axis
+      //   //meshRef.current.position.add(point); 
+      // }
     }
   });
 
@@ -73,7 +83,7 @@ function UpdateCamera() {
 
 export default function ObjectColorSolid() {
   const [ocsData, setOcsData] = useState<OcsData>({geometry: new THREE.BufferGeometry(), vertexShader: '', fragmentShader: ''});
-  
+  const [ocs2Data, setOcs2Data] = useState<OcsData>({geometry: new THREE.BufferGeometry(), vertexShader: '', fragmentShader: ''});
   // Pass in relevant global state
   const { 
     conePeaks, 
@@ -112,8 +122,18 @@ export default function ObjectColorSolid() {
         geometry.setIndex(data.indices.flat());
         geometry.translate(-0.5, -0.5, -0.5);
 
+        const geometry2 = geometry.clone()
+        geometry2.translate(1.5, 0, 0)
+
         setOcsData({
           geometry,
+          vertexShader: data.vertexShader,
+          fragmentShader: data.fragmentShader
+        });
+        
+
+        setOcs2Data({
+          geometry: geometry2,
           vertexShader: data.vertexShader,
           fragmentShader: data.fragmentShader
         });
@@ -135,13 +155,14 @@ export default function ObjectColorSolid() {
         camera={{    
             position: [0.43, 0.3, 0.4],
             zoom: 1,
-            near: 0.1,
-            far: 1000,
-            top: 1,
-            bottom: -1,
-            left: window.innerWidth / window.innerHeight* -1,
-            right: window.innerWidth / window.innerHeight * 1
+            near: 0.001,
+            far: 10000,
+            top: 4,
+            bottom: -4,
+            left: window.innerWidth / window.innerHeight* -4,
+            right: window.innerWidth / window.innerHeight * 4
         }} 
+        // camera={{ position: [0.43, 0.3, 0.4], fov: 60 }}
         onMouseMove={(e) => {
           // Mouse position -> normalized device coordinates * 2
           const [smallestY, largestY] = [-0.3, 0.3]
@@ -166,8 +187,18 @@ export default function ObjectColorSolid() {
             geometry={ocsData.geometry}
             vertexShader={ocsData.vertexShader}
             fragmentShader={ocsData.fragmentShader}
+            center={[0, 0, 0]}
           />
         )}
+        {/* {ocs2Data && (
+          <CustomMesh 
+            // key={submitSwitch}
+            geometry={ocs2Data.geometry}
+            vertexShader={ocs2Data.vertexShader}
+            fragmentShader={ocs2Data.fragmentShader}
+            center={[1.5, 0, 0]}
+          />
+        )} */}
         <OrbitControls target={[0, 0, 0]} />
         <axesHelper args={[5]} />
       </Canvas>
