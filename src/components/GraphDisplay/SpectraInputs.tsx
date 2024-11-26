@@ -7,54 +7,34 @@ import { useAppContext } from "../AppLayout";
 export default function SpectraInputs() {
   const [open, setOpen] = useState(false);
   const {
-    conePeaks,
-    setConePeaks,
+    spectralPeaks,
+    setSpectralPeaks,
+    activeCones,
+    setActiveCones,
+    omitBetaBand,
+    setOmitBetaBand,
+    isMaxBasis,
+    setIsMaxBasis,
+    wavelengthSampleResolution,
+    setWavelengthSampleResolution,
     submitSwitch,
     setSubmitSwitch,
     wavelengthBounds,
     setWavelengthBounds,
   } = useAppContext();
 
-  // State for sliders and their toggles
-  const [sliderValues, setSliderValues] = useState({
-    peakWavelength1: 400,
-    peakWavelength2: 500,
-    peakWavelength3: 600,
-    peakWavelength4: 700,
-  });
-
-  const [sliderActive, setSliderActive] = useState({
-    peakWavelength1: true,
-    peakWavelength2: true,
-    peakWavelength3: true,
-    peakWavelength4: true,
-  });
-
-  // State for additional fields
-  const [omitBetaBand, setOmitBetaBand] = useState(false);
-  const [isMaxBasis, setIsMaxBasis] = useState(false);
-  const [wavelengthSampleResolution, setWavelengthSampleResolution] = useState(10);
-
-  const handleSliderChange = (name: string, value: number) => {
-    setSliderValues((prev) => ({
+  const handleSpectralPeaksChange = (name: string, value: number) => {
+    setSpectralPeaks((prev) => ({
       ...prev,
       [name]: value,
     }));
   };
 
-  const handleToggleChange = (name: string) => {
-    setSliderActive((prev) => ({
+  const handleActiveConesChange = (name: string) => {
+    setActiveCones((prev) => ({
       ...prev,
       [name]: !prev[name],
     }));
-  };
-
-  const handleConeInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = event.target;
-    setConePeaks({
-      ...conePeaks,
-      [name]: Number(value),
-    });
   };
 
   const handleBoundsInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -68,10 +48,10 @@ export default function SpectraInputs() {
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setSubmitSwitch(-1 * submitSwitch);
-    console.log("OLD, TODO REMOVE AND DONT USE, Cone Peaks:", conePeaks); // DO NOT USE THIS, USE SLIDER VALUES INSTEAD
+
     console.log("Wavelength Bounds:", wavelengthBounds);
-    console.log("Cone Peaks:", sliderValues);
-    console.log("Active Cones:", sliderActive);
+    console.log("Cone Peaks:", spectralPeaks);
+    console.log("Active Cones:", activeCones);
     console.log("Omit Beta Band:", omitBetaBand);
     console.log("Is Max Basis:", isMaxBasis);
     console.log("Wavelength Sample Resolution:", wavelengthSampleResolution);
@@ -88,7 +68,7 @@ export default function SpectraInputs() {
               placeholder="Minimum Wavelength"
               name="min"
               type="number"
-              value={wavelengthBounds.min}
+              value={wavelengthBounds.min || ''} // Avoid undefined
               onChange={handleBoundsInputChange}
               required
             />
@@ -97,7 +77,7 @@ export default function SpectraInputs() {
               placeholder="Maximum Wavelength"
               name="max"
               type="number"
-              value={wavelengthBounds.max}
+              value={wavelengthBounds.max || ''} // Avoid undefined
               onChange={handleBoundsInputChange}
               required
             />
@@ -107,28 +87,26 @@ export default function SpectraInputs() {
             </Text>
 
             {["peakWavelength1", "peakWavelength2", "peakWavelength3", "peakWavelength4"].map(
-              (slider, index) => (
+              (slider) => (
                 <Group key={slider} position="apart" mb="sm">
-                
                   <Slider
                     label={(value) => `${value} nm`}
-                    value={sliderValues[slider as keyof typeof sliderValues]}
-                    onChange={(value) => handleSliderChange(slider, value)}
+                    value={spectralPeaks[slider as keyof typeof spectralPeaks] || 400} // Default to 400
+                    onChange={(value) => handleSpectralPeaksChange(slider, value)}
                     min={300}
                     max={800}
                     step={1}
-                    disabled={!sliderActive[slider as keyof typeof sliderActive]}
+                    disabled={!activeCones[slider as keyof typeof activeCones]}
                     style={{ flexGrow: 1 }}
                   />
                   <Checkbox
-                    checked={sliderActive[slider as keyof typeof sliderActive]}
-                    onChange={() => handleToggleChange(slider)}
+                    checked={activeCones[slider as keyof typeof activeCones] || false} // Default to false
+                    onChange={() => handleActiveConesChange(slider)}
                   />
                 </Group>
               )
             )}
 
-            {/* Additional Fields */}
             <Checkbox
               label="Omit Beta Band"
               checked={omitBetaBand}
@@ -145,7 +123,7 @@ export default function SpectraInputs() {
               label="Wavelength Sample Resolution"
               placeholder="Enter Resolution"
               type="number"
-              value={wavelengthSampleResolution}
+              value={wavelengthSampleResolution || ''} // Avoid undefined
               onChange={(event) => setWavelengthSampleResolution(Number(event.target.value))}
               required
               mb="sm"

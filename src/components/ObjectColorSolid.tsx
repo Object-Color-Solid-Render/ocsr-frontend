@@ -86,12 +86,20 @@ export default function ObjectColorSolid() {
   const [ocs2Data, setOcs2Data] = useState<OcsData>({geometry: new THREE.BufferGeometry(), vertexShader: '', fragmentShader: ''});
   // Pass in relevant global state
   const { 
-    conePeaks, 
+
+    // for generating OCS
+    spectralPeaks,
+    activeCones,
+    omitBetaBand,
+    isMaxBasis,
+    wavelengthSampleResolution,
+
+    // for spectra graph
+    setConeResponses,
+    setWavelengths,
+
     submitSwitch, 
     wavelengthBounds, 
-    responseFileName, 
-    wavelengths, setWavelengths, 
-    coneResponses, setConeResponses,
     sliceDimension,
     sliceVisible,
     setSliceVisible,
@@ -105,9 +113,21 @@ export default function ObjectColorSolid() {
     const params = new URLSearchParams({
       minWavelength: wavelengthBounds.min.toString(),
       maxWavelength: wavelengthBounds.max.toString(),
-      responseFileName: responseFileName,
+      omitBetaBand: omitBetaBand.toString(),
+      isMaxBasis: isMaxBasis.toString(),
+      wavelengthSampleResolution: wavelengthSampleResolution.toString(),
+      peakWavelength1: spectralPeaks.peakWavelength1.toString(),
+      peakWavelength2: spectralPeaks.peakWavelength2.toString(),
+      peakWavelength3: spectralPeaks.peakWavelength3.toString(),
+      peakWavelength4: spectralPeaks.peakWavelength4.toString(),
+      isCone1Active: activeCones.isCone1Active.toString(),
+      isCone2Active: activeCones.isCone2Active.toString(),
+      isCone3Active: activeCones.isCone3Active.toString(),
+      isCone4Active: activeCones.isCone4Active.toString()
     });
-    console.log(params.toString())
+    console.log("================================================================================")
+    console.log(params.toString());
+    console.log("================================================================================")
 
     fetch(`http://localhost:5000/get_ocs_data?${params.toString()}`)
       .then(response => {
@@ -138,6 +158,7 @@ export default function ObjectColorSolid() {
           fragmentShader: data.fragmentShader
         });
 
+        
         setWavelengths(data.wavelengths.flat())
         setConeResponses({
           coneResponse1: data.s_response.flat(),

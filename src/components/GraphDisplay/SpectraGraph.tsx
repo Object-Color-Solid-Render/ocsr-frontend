@@ -18,7 +18,7 @@ const createChartData = (wavelengths, coneResponses) => {
       sResponse: coneResponses.coneResponse1[index], // Y-value for S Cone
       mResponse: coneResponses.coneResponse2[index], // Y-value for M Cone
       lResponse: coneResponses.coneResponse3[index], // Y-value for L Cone
-      qResponse: coneResponses.coneResponse4[index], // Y-value for L Cone
+      qResponse: coneResponses.coneResponse4[index], // Y-value for Q Cone
     }));
 };
 

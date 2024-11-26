@@ -42,9 +42,45 @@ const headerStyle = (theme: MantineTheme) => ({
   alignItems: "center",
 });
 
+// all state/context members
 type AppContextType = {
   height: number;
   width: number;
+
+  omitBetaBand: boolean;
+  setOmitBetaBand: Dispatch<SetStateAction<boolean>>;
+
+  isMaxBasis: boolean;
+  setIsMaxBasis: Dispatch<SetStateAction<boolean>>;
+
+  wavelengthSampleResolution: number;
+  setWavelengthSampleResolution: Dispatch<SetStateAction<number>>;
+
+  spectralPeaks: {
+    peakWavelength1: number;
+    peakWavelength2: number;
+    peakWavelength3: number;
+    peakWavelength4: number;
+  };
+  setSpectralPeaks: Dispatch<SetStateAction<{
+    peakWavelength1: number;
+    peakWavelength2: number;
+    peakWavelength3: number;
+    peakWavelength4: number;
+  }>>;
+
+  activeCones: {
+    isCone1Active: boolean;
+    isCone2Active: boolean;
+    isCone3Active: boolean;
+    isCone4Active: boolean;
+  };
+  setActiveCones: Dispatch<SetStateAction<{
+    isCone1Active: boolean;
+    isCone2Active: boolean;
+    isCone3Active: boolean;
+    isCone4Active: boolean;
+  }>>;
 
   sliceDimension: number;
   setSliceDimension: Dispatch<SetStateAction<number>>;
@@ -112,7 +148,26 @@ export const DEFAULT_Q_PEAK = 560;
 const MIN_VISIBLE_WAVELENGTH = 390;
 const MAX_VISIBLE_WAVELENGTH = 700;
 
+// init state
 const AppContextProvider = ({ children }: { children: ReactNode }) => {
+
+  const [omitBetaBand, setOmitBetaBand] = useState(false);
+  const [isMaxBasis, setIsMaxBasis] = useState(false);
+  const [wavelengthSampleResolution, setWavelengthSampleResolution] = useState(10);
+  const [spectralPeaks, setSpectralPeaks] = useState({
+    peakWavelength1: DEFAULT_S_PEAK,
+    peakWavelength2: DEFAULT_M_PEAK,
+    peakWavelength3: DEFAULT_L_PEAK,
+    peakWavelength4: DEFAULT_Q_PEAK,
+  });
+
+  const [activeCones, setActiveCones] = useState({
+    isCone1Active: true,
+    isCone2Active: true,
+    isCone3Active: true,
+    isCone4Active: true,
+  });
+  
   const [sliceDimension, setSliceDimension] = useState(2);
   const [conePeaks, setConePeaks] = useState({
     conePeak1: DEFAULT_S_PEAK,
@@ -141,6 +196,20 @@ const AppContextProvider = ({ children }: { children: ReactNode }) => {
   return (
     <AppContext.Provider
       value={{
+
+        omitBetaBand,
+        setOmitBetaBand,
+        isMaxBasis,
+        setIsMaxBasis,
+        wavelengthSampleResolution,
+        setWavelengthSampleResolution,
+
+        spectralPeaks,
+        setSpectralPeaks,
+
+        activeCones,
+        setActiveCones,
+
         height,
         width,
         sliceDimension,
