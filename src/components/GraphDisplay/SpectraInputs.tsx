@@ -9,6 +9,8 @@ export default function SpectraInputs() {
   const {
     spectralPeaks,
     setSpectralPeaks,
+    spectralPeaksNew,
+    setSpectralPeaksNew,
     activeCones,
     setActiveCones,
     omitBetaBand,
@@ -48,6 +50,8 @@ export default function SpectraInputs() {
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setSubmitSwitch(-1 * submitSwitch);
+
+    console.log("new stuff:", spectralPeaksNew)
 
     console.log("Wavelength Bounds:", wavelengthBounds);
     console.log("Cone Peaks:", spectralPeaks);

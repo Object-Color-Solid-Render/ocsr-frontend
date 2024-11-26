@@ -88,6 +88,7 @@ export default function ObjectColorSolid() {
   const { 
 
     // for generating OCS
+    spectralPeaksNew,
     spectralPeaks,
     activeCones,
     omitBetaBand,

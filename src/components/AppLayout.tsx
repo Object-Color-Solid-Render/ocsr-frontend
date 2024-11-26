@@ -207,6 +207,9 @@ const AppContextProvider = ({ children }: { children: ReactNode }) => {
 
         spectralPeaks,
         setSpectralPeaks,
+        
+        spectralPeaksNew,
+        setSpectralPeaksNew,
 
         activeCones,
         setActiveCones,
