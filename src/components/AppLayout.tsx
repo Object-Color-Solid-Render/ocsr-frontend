@@ -42,6 +42,18 @@ const headerStyle = (theme: MantineTheme) => ({
   alignItems: "center",
 });
 
+type SpectralPeakType = {
+  peak: number;
+  isActive: boolean;
+};
+
+type SpectralPeaksType = {
+  peak1: SpectralPeakType;
+  peak2: SpectralPeakType;
+  peak3: SpectralPeakType;
+  peak4: SpectralPeakType;
+};
+
 // all state/context members
 type AppContextType = {
   height: number;
@@ -55,7 +67,10 @@ type AppContextType = {
 
   wavelengthSampleResolution: number;
   setWavelengthSampleResolution: Dispatch<SetStateAction<number>>;
-
+  
+  spectralPeaksNew: SpectralPeaksType;
+  setSpectralPeaksNew: Dispatch<SetStateAction<SpectralPeaksType>>;
+  
   spectralPeaks: {
     peakWavelength1: number;
     peakWavelength2: number;
@@ -68,7 +83,6 @@ type AppContextType = {
     peakWavelength3: number;
     peakWavelength4: number;
   }>>;
-
   activeCones: {
     isCone1Active: boolean;
     isCone2Active: boolean;
@@ -147,7 +161,7 @@ const AppContextProvider = ({ children }: { children: ReactNode }) => {
     peakWavelength3: DEFAULT_L_PEAK,
     peakWavelength4: DEFAULT_Q_PEAK,
   });
-
+  
   const [activeCones, setActiveCones] = useState({
     isCone1Active: true,
     isCone2Active: true,
