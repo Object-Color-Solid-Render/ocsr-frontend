@@ -60,7 +60,7 @@ export default function SpectraInputs() {
   return (
     <div>
       <DropdownButton open={open} setOpen={setOpen} leftDropdown={false} />
-      <DropdownContent open={open}>
+      <DropdownContent open={open} width={400}>
         <Stack gap="m">
           <form onSubmit={handleSubmit}>
             <TextInput
@@ -85,13 +85,15 @@ export default function SpectraInputs() {
             <Text weight={500} fw={500} size="md" mb="sm">
               Spectral Peaks (nm)
             </Text>
-
             {["peakWavelength1", "peakWavelength2", "peakWavelength3", "peakWavelength4"].map(
               (slider) => (
                 <Group key={slider} position="apart" mb="sm">
+                  <Text size="sm" style={{ minWidth: '0px' }}>
+                    {`${spectralPeaks[slider as keyof typeof spectralPeaks] || "N/A"} nm`}
+                  </Text>
                   <Slider
-                    label={(value) => `${value} nm`}
-                    value={spectralPeaks[slider as keyof typeof spectralPeaks] || 400} // Default to 400
+                    label={null}
+                    value={spectralPeaks[slider as keyof typeof spectralPeaks] || "N/A"}
                     onChange={(value) => handleSpectralPeaksChange(slider, value)}
                     min={300}
                     max={800}
@@ -100,21 +102,20 @@ export default function SpectraInputs() {
                     style={{ flexGrow: 1 }}
                   />
                   <Checkbox
-                    checked={activeCones[slider as keyof typeof activeCones] || false} // Default to false
+                    checked={activeCones[slider as keyof typeof activeCones] || false}
                     onChange={() => handleActiveConesChange(slider)}
                   />
                 </Group>
               )
             )}
-
-            <Checkbox
+              <Checkbox
               label="Omit Beta Band"
               checked={omitBetaBand}
               onChange={(event) => setOmitBetaBand(event.currentTarget.checked)}
               mb="sm"
             />
             <Checkbox
-              label="Is Max Basis"
+              label="Max Basis"
               checked={isMaxBasis}
               onChange={(event) => setIsMaxBasis(event.currentTarget.checked)}
               mb="sm"

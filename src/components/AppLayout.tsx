@@ -153,7 +153,7 @@ const AppContextProvider = ({ children }: { children: ReactNode }) => {
 
   const [omitBetaBand, setOmitBetaBand] = useState(false);
   const [isMaxBasis, setIsMaxBasis] = useState(false);
-  const [wavelengthSampleResolution, setWavelengthSampleResolution] = useState(10);
+  const [wavelengthSampleResolution, setWavelengthSampleResolution] = useState(20);
   const [spectralPeaks, setSpectralPeaks] = useState({
     peakWavelength1: DEFAULT_S_PEAK,
     peakWavelength2: DEFAULT_M_PEAK,
@@ -165,7 +165,7 @@ const AppContextProvider = ({ children }: { children: ReactNode }) => {
     isCone1Active: true,
     isCone2Active: true,
     isCone3Active: true,
-    isCone4Active: true,
+    isCone4Active: false,
   });
   
   const [sliceDimension, setSliceDimension] = useState(2);
