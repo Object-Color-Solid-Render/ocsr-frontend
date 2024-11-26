@@ -97,8 +97,8 @@ export default function SpectraInputs() {
                     onChange={(value) =>
                       handleSpectralPeaksChange(`peakWavelength${index + 1}`, value)
                     }
-                    min={300}
-                    max={800}
+                    min={380}
+                    max={700}
                     step={1}
                     disabled={!activeCones[coneKey]}
                     style={{ flexGrow: 1 }}
