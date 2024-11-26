@@ -162,6 +162,11 @@ const AppContextProvider = ({ children }: { children: ReactNode }) => {
     peakWavelength4: DEFAULT_Q_PEAK,
   });
   
+  const [spectralPeaksNew, setSpectralPeaksNew] = useState({
+    
+  });
+  
+  
   const [activeCones, setActiveCones] = useState({
     isCone1Active: true,
     isCone2Active: true,
