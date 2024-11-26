@@ -1,11 +1,23 @@
-import { Stack, Button, TextInput, Slider, Checkbox, Group, Text } from "@mantine/core";
-import { useState } from "react";
+import {
+  Stack,
+  Button,
+  TextInput,
+  Slider,
+  Checkbox,
+  Group,
+  Text,
+  Select,
+} from "@mantine/core";
+import { useState, useEffect } from "react";
 import DropdownContent from "../Dropdown/DropdownContent";
 import DropdownButton from "../Dropdown/DropdownButton";
 import { useAppContext } from "../AppLayout";
 
 export default function SpectraInputs() {
   const [open, setOpen] = useState(false);
+  const [selectedOption, setSelectedOption] = useState<string | null>(null);
+  const [dropdownOptions, setDropdownOptions] = useState<string[]>([]);
+
   const {
     spectralPeaks,
     setSpectralPeaks,
@@ -55,8 +67,33 @@ export default function SpectraInputs() {
     console.log("Omit Beta Band:", omitBetaBand);
     console.log("Is Max Basis:", isMaxBasis);
     console.log("Wavelength Sample Resolution:", wavelengthSampleResolution);
+    console.log("Selected Option:", selectedOption);
   };
 
+  // Simulate adding arbitrary options to the dropdown
+  const handleAddOption = () => {
+    const newOption = `Option ${dropdownOptions.length + 1}`;
+    setDropdownOptions((prev) => [...prev, newOption]);
+  };
+
+  // When necessary, load in the OCS
+  useEffect(() => {
+
+    fetch(`http://localhost:5000/get_spectral_db`)
+      .then(response => {
+        if (!response.ok) throw new Error('Failed to fetch data');
+        return response.json();
+      })
+      .then(data => {
+        
+
+        console.log("Loaded data:");
+        console.log(data);
+
+      })
+      .catch(error => console.error('Error fetching data:', error));
+  }, [submitSwitch]);
+  
   return (
     <div>
       <DropdownButton open={open} setOpen={setOpen} leftDropdown={false} />
@@ -132,6 +169,19 @@ export default function SpectraInputs() {
               mb="sm"
             />
 
+            <Text weight={500} fw={500} size="md" mb="sm">
+              Select Option
+            </Text>
+            <Select
+              placeholder="Pick one"
+              data={dropdownOptions}
+              value={selectedOption}
+              onChange={setSelectedOption}
+              searchable
+              nothingFound="No options"
+              dropdownPosition="bottom"
+              style={{ marginBottom: "16px" }}
+            />
             <Button type="submit" fullWidth>
               Submit
             </Button>
