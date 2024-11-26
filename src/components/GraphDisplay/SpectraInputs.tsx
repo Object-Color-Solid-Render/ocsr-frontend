@@ -68,7 +68,7 @@ export default function SpectraInputs() {
               placeholder="Minimum Wavelength"
               name="min"
               type="number"
-              value={wavelengthBounds.min || ''} // Avoid undefined
+              value={wavelengthBounds.min || ""} // Avoid undefined
               onChange={handleBoundsInputChange}
               required
             />
@@ -77,7 +77,7 @@ export default function SpectraInputs() {
               placeholder="Maximum Wavelength"
               name="max"
               type="number"
-              value={wavelengthBounds.max || ''} // Avoid undefined
+              value={wavelengthBounds.max || ""} // Avoid undefined
               onChange={handleBoundsInputChange}
               required
             />
@@ -85,30 +85,32 @@ export default function SpectraInputs() {
             <Text weight={500} fw={500} size="md" mb="sm">
               Spectral Peaks (nm)
             </Text>
-            {["peakWavelength1", "peakWavelength2", "peakWavelength3", "peakWavelength4"].map(
-              (slider) => (
-                <Group key={slider} position="apart" mb="sm">
-                  <Text size="sm" style={{ minWidth: '0px' }}>
-                    {`${spectralPeaks[slider as keyof typeof spectralPeaks] || "N/A"} nm`}
+            {["isCone1Active", "isCone2Active", "isCone3Active", "isCone4Active"].map(
+              (coneKey, index) => (
+                <Group key={coneKey} position="apart" mb="sm">
+                  <Text size="sm" style={{ minWidth: "0px" }}>
+                    {`${spectralPeaks[`peakWavelength${index + 1}`] || "N/A"} nm`}
                   </Text>
                   <Slider
                     label={null}
-                    value={spectralPeaks[slider as keyof typeof spectralPeaks] || "N/A"}
-                    onChange={(value) => handleSpectralPeaksChange(slider, value)}
+                    value={spectralPeaks[`peakWavelength${index + 1}`] || "N/A"}
+                    onChange={(value) =>
+                      handleSpectralPeaksChange(`peakWavelength${index + 1}`, value)
+                    }
                     min={300}
                     max={800}
                     step={1}
-                    disabled={!activeCones[slider as keyof typeof activeCones]}
+                    disabled={!activeCones[coneKey]}
                     style={{ flexGrow: 1 }}
                   />
                   <Checkbox
-                    checked={activeCones[slider as keyof typeof activeCones] || false}
-                    onChange={() => handleActiveConesChange(slider)}
+                    checked={activeCones[coneKey] || false}
+                    onChange={() => handleActiveConesChange(coneKey)}
                   />
                 </Group>
               )
             )}
-              <Checkbox
+            <Checkbox
               label="Omit Beta Band"
               checked={omitBetaBand}
               onChange={(event) => setOmitBetaBand(event.currentTarget.checked)}
@@ -124,7 +126,7 @@ export default function SpectraInputs() {
               label="Wavelength Sample Resolution"
               placeholder="Enter Resolution"
               type="number"
-              value={wavelengthSampleResolution || ''} // Avoid undefined
+              value={wavelengthSampleResolution || ""} // Avoid undefined
               onChange={(event) => setWavelengthSampleResolution(Number(event.target.value))}
               required
               mb="sm"

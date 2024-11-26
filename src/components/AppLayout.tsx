@@ -85,19 +85,6 @@ type AppContextType = {
   sliceDimension: number;
   setSliceDimension: Dispatch<SetStateAction<number>>;
 
-  conePeaks: {
-    conePeak1: number;
-    conePeak2: number;
-    conePeak3: number;
-    conePeak4: number;
-  };
-  setConePeaks: Dispatch<SetStateAction<{
-    conePeak1: number;
-    conePeak2: number;
-    conePeak3: number;
-    conePeak4: number;
-  }>>;
-
   submitSwitch: number;
   setSubmitSwitch: Dispatch<SetStateAction<number>>;
 
@@ -214,8 +201,7 @@ const AppContextProvider = ({ children }: { children: ReactNode }) => {
         width,
         sliceDimension,
         setSliceDimension,
-        conePeaks,
-        setConePeaks,
+
         coneResponseType,
         setConeResponseType,
         submitSwitch,
