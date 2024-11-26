@@ -1,6 +1,4 @@
-// SpectraInputs.tsx
-
-import { Stack, Button, TextInput, FileInput } from "@mantine/core";
+import { Stack, Button, TextInput, Slider, Checkbox, Group, Text } from "@mantine/core";
 import { useState } from "react";
 import DropdownContent from "../Dropdown/DropdownContent";
 import DropdownButton from "../Dropdown/DropdownButton";
@@ -15,11 +13,41 @@ export default function SpectraInputs() {
     setSubmitSwitch,
     wavelengthBounds,
     setWavelengthBounds,
-    responseFileName,
-    setResponseFileName, // **Using context's setter**
   } = useAppContext();
 
-  const [file, setFile] = useState<File | null>(null);
+  // State for sliders and their toggles
+  const [sliderValues, setSliderValues] = useState({
+    peakWavelength1: 400,
+    peakWavelength2: 500,
+    peakWavelength3: 600,
+    peakWavelength4: 700,
+  });
+
+  const [sliderActive, setSliderActive] = useState({
+    peakWavelength1: true,
+    peakWavelength2: true,
+    peakWavelength3: true,
+    peakWavelength4: true,
+  });
+
+  // State for additional fields
+  const [omitBetaBand, setOmitBetaBand] = useState(false);
+  const [isMaxBasis, setIsMaxBasis] = useState(false);
+  const [wavelengthSampleResolution, setWavelengthSampleResolution] = useState(10);
+
+  const handleSliderChange = (name: string, value: number) => {
+    setSliderValues((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
+  const handleToggleChange = (name: string) => {
+    setSliderActive((prev) => ({
+      ...prev,
+      [name]: !prev[name],
+    }));
+  };
 
   const handleConeInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = event.target;
@@ -37,45 +65,16 @@ export default function SpectraInputs() {
     });
   };
 
-  const handleResponseFileNameChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setResponseFileName(event.target.value); // **Using context's setter**
-  };
-
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault(); // Prevent page reload
+    event.preventDefault();
     setSubmitSwitch(-1 * submitSwitch);
-    console.log('Form data:', conePeaks);
-    console.log(wavelengthBounds);
-    console.log('Response File Name:', responseFileName); // **Logging context's responseFileName**
-    // You can send the form data to an API or process it here
-  };
-
-  const handleFileUpload = async () => {
-    if (!file) {
-      console.error('No file selected');
-      return;
-    }
-
-    const formData = new FormData();
-    formData.append('file', file);
-
-    try {
-      const response = await fetch('http://localhost:5000/upload_file', {
-        method: 'POST',
-        body: formData,
-      });
-
-      if (!response.ok) {
-        throw new Error('File upload failed');
-      }
-
-      const result = await response.json();
-      console.log('File uploaded successfully:', result);
-      // Trigger a re-render or update of the OCS here if needed
-      setSubmitSwitch(-1 * submitSwitch);
-    } catch (error) {
-      console.error('Error uploading file:', error);
-    }
+    console.log("OLD, TODO REMOVE AND DONT USE, Cone Peaks:", conePeaks); // DO NOT USE THIS, USE SLIDER VALUES INSTEAD
+    console.log("Wavelength Bounds:", wavelengthBounds);
+    console.log("Cone Peaks:", sliderValues);
+    console.log("Active Cones:", sliderActive);
+    console.log("Omit Beta Band:", omitBetaBand);
+    console.log("Is Max Basis:", isMaxBasis);
+    console.log("Wavelength Sample Resolution:", wavelengthSampleResolution);
   };
 
   return (
@@ -84,38 +83,6 @@ export default function SpectraInputs() {
       <DropdownContent open={open}>
         <Stack gap="m">
           <form onSubmit={handleSubmit}>
-            {/* Uncomment and update if you need Cone Peak inputs
-            <TextInput
-              label="S Cone Peak"
-              placeholder={String(DEFAULT_S_PEAK)}
-              name="sConePeak"
-              type="number"
-              value={conePeaks.sConePeak}
-              onChange={handleConeInputChange}
-              required
-              mb="sm"
-            />
-            <TextInput
-              label="M Cone Peak"
-              placeholder={String(DEFAULT_M_PEAK)}
-              name="mConePeak"
-              type="number"
-              value={conePeaks.mConePeak}
-              onChange={handleConeInputChange}
-              required
-              mb="sm"
-            />
-            <TextInput
-              label="L Cone Peak"
-              placeholder={String(DEFAULT_L_PEAK)}
-              name="lConePeak"
-              type="number"
-              value={conePeaks.lConePeak}
-              onChange={handleConeInputChange}
-              required
-              mb="sm"
-            />
-            */}
             <TextInput
               label="Minimum Wavelength"
               placeholder="Minimum Wavelength"
@@ -124,7 +91,6 @@ export default function SpectraInputs() {
               value={wavelengthBounds.min}
               onChange={handleBoundsInputChange}
               required
-              // mb="sm"
             />
             <TextInput
               label="Maximum Wavelength"
@@ -134,28 +100,57 @@ export default function SpectraInputs() {
               value={wavelengthBounds.max}
               onChange={handleBoundsInputChange}
               required
-              // mb="sm"
             />
-            <TextInput
-              label="File Name"
-              placeholder="Response File Name"
-              name="responseFileName"
-              type="text"
-              value={responseFileName} // **Using context's value**
-              onChange={handleResponseFileNameChange}
-              // required
-              // mb="sm"
-            />
-            <FileInput
-              label="File Upload"
-              placeholder="Choose file"
-              onChange={setFile}
-              accept=".txt,.csv"
+
+            <Text weight={500} fw={500} size="md" mb="sm">
+              Spectral Peaks (nm)
+            </Text>
+
+            {["peakWavelength1", "peakWavelength2", "peakWavelength3", "peakWavelength4"].map(
+              (slider, index) => (
+                <Group key={slider} position="apart" mb="sm">
+                
+                  <Slider
+                    label={(value) => `${value} nm`}
+                    value={sliderValues[slider as keyof typeof sliderValues]}
+                    onChange={(value) => handleSliderChange(slider, value)}
+                    min={300}
+                    max={800}
+                    step={1}
+                    disabled={!sliderActive[slider as keyof typeof sliderActive]}
+                    style={{ flexGrow: 1 }}
+                  />
+                  <Checkbox
+                    checked={sliderActive[slider as keyof typeof sliderActive]}
+                    onChange={() => handleToggleChange(slider)}
+                  />
+                </Group>
+              )
+            )}
+
+            {/* Additional Fields */}
+            <Checkbox
+              label="Omit Beta Band"
+              checked={omitBetaBand}
+              onChange={(event) => setOmitBetaBand(event.currentTarget.checked)}
               mb="sm"
             />
-            <Button onClick={handleFileUpload} disabled={!file} mb="sm">
-              Upload File
-            </Button>
+            <Checkbox
+              label="Is Max Basis"
+              checked={isMaxBasis}
+              onChange={(event) => setIsMaxBasis(event.currentTarget.checked)}
+              mb="sm"
+            />
+            <TextInput
+              label="Wavelength Sample Resolution"
+              placeholder="Enter Resolution"
+              type="number"
+              value={wavelengthSampleResolution}
+              onChange={(event) => setWavelengthSampleResolution(Number(event.target.value))}
+              required
+              mb="sm"
+            />
+
             <Button type="submit" fullWidth>
               Submit
             </Button>

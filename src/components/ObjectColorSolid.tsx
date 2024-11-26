@@ -140,9 +140,10 @@ export default function ObjectColorSolid() {
 
         setWavelengths(data.wavelengths.flat())
         setConeResponses({
-          sConeResponse: data.s_response.flat(),
-          mConeResponse: data.m_response.flat(),
-          lConeResponse: data.l_response.flat(),
+          coneResponse1: data.s_response.flat(),
+          coneResponse2: data.m_response.flat(),
+          coneResponse3: data.l_response.flat(),
+          coneResponse4: data.l_response.flat(),
         })
       })
       .catch(error => console.error('Error fetching data:', error));

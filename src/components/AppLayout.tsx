@@ -1,46 +1,45 @@
-// AppLayout.tsx
-
 import { AppShell, Container, Grid, useMantineTheme, Title, Stack, MantineTheme } from "@mantine/core";
 import ObjectColorSolid from "./ObjectColorSolid";
 import SliceDisplay from "./SliceDisplay/SliceDisplay";
 import GraphDisplay from "./GraphDisplay/GraphDisplay";
+import SpectraInputs from "./GraphDisplay/SpectraInputs";
 import { createContext, Dispatch, ReactNode, SetStateAction, useContext, useEffect, useState } from "react";
-import React from 'react';
+import React from "react";
 
 const getWindowDimensions = () => {
-    const { innerWidth: width, innerHeight: height } = window;
-    return { width, height };
+  const { innerWidth: width, innerHeight: height } = window;
+  return { width, height };
 };
 
 const useWindowDimensions = () => {
-    const [windowDimensions, setWindowDimensions] = useState(getWindowDimensions());
-    useEffect(() => {
-        const handleResize = () => {
-            setWindowDimensions(getWindowDimensions());
-        };
-        window.addEventListener("resize", handleResize);
-        return () => window.removeEventListener("resize", handleResize);
-    }, []);
-    return windowDimensions;
+  const [windowDimensions, setWindowDimensions] = useState(getWindowDimensions());
+  useEffect(() => {
+    const handleResize = () => {
+      setWindowDimensions(getWindowDimensions());
+    };
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+  return windowDimensions;
 };
 
 const OCSStyle: React.CSSProperties = {
-  position: 'absolute',
-  marginTop: '-5%',
-  marginLeft: '-2.5%',
-  width: '100%',
-  height: '100%',
-  display: 'flex',
-  justifyContent: 'center',
-  alignItems: 'center',
+  position: "absolute",
+  marginTop: "-5%",
+  marginLeft: "-2.5%",
+  width: "100%",
+  height: "100%",
+  display: "flex",
+  justifyContent: "center",
+  alignItems: "center",
   zIndex: 1,
 };
 
 const headerStyle = (theme: MantineTheme) => ({
   backgroundColor: theme.colors.myColor[7],
-  color: 'white',
-  display: 'flex',
-  alignItems: 'center',
+  color: "white",
+  display: "flex",
+  alignItems: "center",
 });
 
 type AppContextType = {
@@ -49,24 +48,26 @@ type AppContextType = {
 
   sliceDimension: number;
   setSliceDimension: Dispatch<SetStateAction<number>>;
-  
+
   conePeaks: {
-    sConePeak: number;
-    mConePeak: number;
-    lConePeak: number;
+    conePeak1: number;
+    conePeak2: number;
+    conePeak3: number;
+    conePeak4: number;
   };
   setConePeaks: Dispatch<SetStateAction<{
-    sConePeak: number;
-    mConePeak: number;
-    lConePeak: number;
+    conePeak1: number;
+    conePeak2: number;
+    conePeak3: number;
+    conePeak4: number;
   }>>;
 
   submitSwitch: number;
   setSubmitSwitch: Dispatch<SetStateAction<number>>;
-  
+
   coneResponseType: string;
   setConeResponseType: Dispatch<SetStateAction<string>>;
-  
+
   wavelengthBounds: {
     min: number;
     max: number;
@@ -76,20 +77,19 @@ type AppContextType = {
     max: number;
   }>>;
 
-  responseFileName: string; // **Added**
-  setResponseFileName: Dispatch<SetStateAction<string>>; // **Added**
-  
   coneResponses: {
-    sConeResponse: Array<number>;
-    mConeResponse: Array<number>;
-    lConeResponse: Array<number>;
+    coneResponse1: Array<number>;
+    coneResponse2: Array<number>;
+    coneResponse3: Array<number>;
+    coneResponse4: Array<number>;
   };
   setConeResponses: Dispatch<SetStateAction<{
-    sConeResponse: Array<number>;
-    mConeResponse: Array<number>;
-    lConeResponse: Array<number>;
+    coneResponse1: Array<number>;
+    coneResponse2: Array<number>;
+    coneResponse3: Array<number>;
+    coneResponse4: Array<number>;
   }>>;
-  
+
   wavelengths: Array<number>;
   setWavelengths: Dispatch<SetStateAction<Array<number>>>;
 
@@ -103,58 +103,68 @@ type AppContextType = {
   setPositionY: Dispatch<SetStateAction<number>>;
 };
 
-// **Updated AppContext to include responseFileName**
 export const AppContext = createContext<AppContextType | undefined>(undefined);
 
 export const DEFAULT_S_PEAK = 455;
 export const DEFAULT_M_PEAK = 543;
 export const DEFAULT_L_PEAK = 566;
+export const DEFAULT_Q_PEAK = 560;
 const MIN_VISIBLE_WAVELENGTH = 390;
-const MAX_VISIBLE_WAVELENGTH = 700; 
+const MAX_VISIBLE_WAVELENGTH = 700;
 
 const AppContextProvider = ({ children }: { children: ReactNode }) => {
   const [sliceDimension, setSliceDimension] = useState(2);
   const [conePeaks, setConePeaks] = useState({
-    sConePeak: DEFAULT_S_PEAK,
-    mConePeak: DEFAULT_M_PEAK, 
-    lConePeak: DEFAULT_L_PEAK
+    conePeak1: DEFAULT_S_PEAK,
+    conePeak2: DEFAULT_M_PEAK,
+    conePeak3: DEFAULT_L_PEAK,
+    conePeak4: DEFAULT_Q_PEAK,
   });
-  const [coneResponseType, setConeResponseType] = useState('Human Trichromat');
+  const [coneResponseType, setConeResponseType] = useState("Human Tetrachromat");
   const [submitSwitch, setSubmitSwitch] = useState(1);
-  const { height, width } = useWindowDimensions(); 
+  const { height, width } = useWindowDimensions();
   const [wavelengthBounds, setWavelengthBounds] = useState({
     min: MIN_VISIBLE_WAVELENGTH,
-    max: MAX_VISIBLE_WAVELENGTH
+    max: MAX_VISIBLE_WAVELENGTH,
   });
-  const [wavelengths, setWavelengths] = useState([0])
+  const [wavelengths, setWavelengths] = useState([0]);
   const [coneResponses, setConeResponses] = useState({
-    sConeResponse: [0],
-    mConeResponse: [0],
-    lConeResponse: [0],
-  })
-  const [sliceVisible, setSliceVisible] = useState(false)
+    coneResponse1: [0],
+    coneResponse2: [0],
+    coneResponse3: [0],
+    coneResponse4: [0],
+  });
+  const [sliceVisible, setSliceVisible] = useState(false);
   const [sliceSwitch, setSliceSwitch] = useState(0);
-  const [positionY, setPositionY] = useState(0)
-
-  // **Initialize responseFileName state**
-  const [responseFileName, setResponseFileName] = useState<string>("");
+  const [positionY, setPositionY] = useState(0);
 
   return (
-    <AppContext.Provider value={{
-      height,
-      width,
-      sliceDimension, setSliceDimension,
-      conePeaks, setConePeaks,
-      coneResponseType, setConeResponseType,
-      submitSwitch, setSubmitSwitch,
-      wavelengthBounds, setWavelengthBounds,
-      responseFileName, setResponseFileName, 
-      wavelengths, setWavelengths,
-      coneResponses, setConeResponses,
-      sliceVisible, setSliceVisible,
-      sliceSwitch, setSliceSwitch,
-      positionY, setPositionY,
-    }}>
+    <AppContext.Provider
+      value={{
+        height,
+        width,
+        sliceDimension,
+        setSliceDimension,
+        conePeaks,
+        setConePeaks,
+        coneResponseType,
+        setConeResponseType,
+        submitSwitch,
+        setSubmitSwitch,
+        wavelengthBounds,
+        setWavelengthBounds,
+        wavelengths,
+        setWavelengths,
+        coneResponses,
+        setConeResponses,
+        sliceVisible,
+        setSliceVisible,
+        sliceSwitch,
+        setSliceSwitch,
+        positionY,
+        setPositionY,
+      }}
+    >
       {children}
     </AppContext.Provider>
   );

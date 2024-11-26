@@ -15,9 +15,10 @@ const boxStyle = {
 const createChartData = (wavelengths, coneResponses) => {
     return wavelengths.map((wavelength, index) => ({
       wavelength,  // X-axis value
-      sResponse: coneResponses.sConeResponse[index], // Y-value for S Cone
-      mResponse: coneResponses.mConeResponse[index], // Y-value for M Cone
-      lResponse: coneResponses.lConeResponse[index], // Y-value for L Cone
+      sResponse: coneResponses.coneResponse1[index], // Y-value for S Cone
+      mResponse: coneResponses.coneResponse2[index], // Y-value for M Cone
+      lResponse: coneResponses.coneResponse3[index], // Y-value for L Cone
+      qResponse: coneResponses.coneResponse4[index], // Y-value for L Cone
     }));
 };
 
@@ -44,6 +45,7 @@ export default function GraphDisplay() {
                             <Line type="monotone" dataKey="sResponse" stroke="#8884d8" name="S Cone Response" />
                             <Line type="monotone" dataKey="mResponse" stroke="#82ca9d" name="M Cone Response" />
                             <Line type="monotone" dataKey="lResponse" stroke="#ff7300" name="L Cone Response" />
+                            <Line type="monotone" dataKey="lResponse" stroke="#ff7300" name="Q Cone Response" />
                         </LineChart>
                     </ResponsiveContainer>
                 </Card>
