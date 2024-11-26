@@ -165,7 +165,7 @@ export default function ObjectColorSolid() {
           coneResponse1: data.s_response.flat(),
           coneResponse2: data.m_response.flat(),
           coneResponse3: data.l_response.flat(),
-          coneResponse4: data.l_response.flat(),
+          coneResponse4: data.q_response.flat(),
         })
       })
       .catch(error => console.error('Error fetching data:', error));

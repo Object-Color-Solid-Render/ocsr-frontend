@@ -152,7 +152,7 @@ const MAX_VISIBLE_WAVELENGTH = 700;
 // init state
 const AppContextProvider = ({ children }: { children: ReactNode }) => {
 
-  const [omitBetaBand, setOmitBetaBand] = useState(false);
+  const [omitBetaBand, setOmitBetaBand] = useState(true);
   const [isMaxBasis, setIsMaxBasis] = useState(false);
   const [wavelengthSampleResolution, setWavelengthSampleResolution] = useState(20);
   const [spectralPeaks, setSpectralPeaks] = useState({
