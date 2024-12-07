@@ -54,10 +54,22 @@ type SpectralPeaksType = {
   peak4: SpectralPeakType;
 };
 
+type SpectralDBEntry = {
+  scientificName: string;
+  peaks: number[];
+  source: string;
+  note: string;
+};
+
+type SpectralDB = Record<string, SpectralDBEntry>;
+
 // all state/context members
 type AppContextType = {
   height: number;
   width: number;
+
+  spectralDB: SpectralDB;
+  setSpectralDB: Dispatch<SetStateAction<SpectralDB>>;
 
   omitBetaBand: boolean;
   setOmitBetaBand: Dispatch<SetStateAction<boolean>>;
@@ -150,7 +162,9 @@ const MIN_VISIBLE_WAVELENGTH = 390;
 const MAX_VISIBLE_WAVELENGTH = 700;
 
 // init state
-const AppContextProvider = ({ children }: { children: ReactNode }) => {
+export const AppContextProvider = ({ children }: { children: ReactNode }) => {
+
+  const [spectralDB, setSpectralDB] = useState<SpectralDB>({});
 
   const [omitBetaBand, setOmitBetaBand] = useState(true);
   const [isMaxBasis, setIsMaxBasis] = useState(false);
@@ -162,6 +176,12 @@ const AppContextProvider = ({ children }: { children: ReactNode }) => {
     peakWavelength4: DEFAULT_Q_PEAK,
   });
   
+  const [spectralPeaksNew, setSpectralPeaksNew] = useState<SpectralPeaksType>({
+    peak1: { peak: DEFAULT_S_PEAK, isActive: true },
+    peak2: { peak: DEFAULT_M_PEAK, isActive: true },
+    peak3: { peak: DEFAULT_L_PEAK, isActive: true },
+    peak4: { peak: DEFAULT_Q_PEAK, isActive: false },
+  });  
   
   const [activeCones, setActiveCones] = useState({
     isCone1Active: true,
@@ -208,6 +228,9 @@ const AppContextProvider = ({ children }: { children: ReactNode }) => {
   return (
     <AppContext.Provider
       value={{
+
+        spectralDB,
+        setSpectralDB,
 
         omitBetaBand,
         setOmitBetaBand,
@@ -262,44 +285,67 @@ export const useAppContext = (): AppContextType => { // **Updated to ensure non-
 };
 
 export default function AppLayout() {
-    const theme = useMantineTheme();
-
-    return (
-        <AppContextProvider>
-          <AppShell
-            header={{ height: 50 }}
-            padding="sm"
-          >
-            {/* Header Section */}
-            <AppShell.Header style={headerStyle(theme)}>
-              <Title order={3} ml="lg"> Object Color Solid Renderer </Title>
-            </AppShell.Header>
+  const theme = useMantineTheme();
+  const { setSpectralDB } = useAppContext(); // This will now work because AppContextProvider wraps AppLayout.
+  
+  useEffect(() => {
     
-            {/* Main Content Section */}
-            <AppShell.Main >
+    console.log("Fetching DB data...");
+  
+    fetch(`http://localhost:5000/get_spectral_db`)
+      .then((response) => {
+        if (!response.ok) throw new Error('Failed to fetch data');
+        return response.json();
+      })
+      .then((responseData) => {
+        // Ensure responseData has a `data` property and it's an array
+        const { data } = responseData;
+        if (!Array.isArray(data)) {
+          throw new Error('Invalid data format: Expected an array in "data" property');
+        }
+  
+        // Transform array into a SpectralDB map
+        const spectralDB: SpectralDB = data.reduce((acc, item) => {
+          if (Array.isArray(item)) {
+            const [commonName, scientificName, peaks, source, note] = item;
+            acc[commonName] = { scientificName, peaks, source, note };
+          } else {
+            console.warn('Unexpected item format:', item);
+          }
+          return acc;
+        }, {} as SpectralDB);
+  
+        console.log("SpectralDB:", spectralDB);
+        setSpectralDB(spectralDB);
+      })
+      .catch((error) => console.error('Error fetching or transforming data:', error));
+  }, [setSpectralDB]);
+  
+  return (
+      <AppShell
+          header={{ height: 50 }}
+          padding="sm"
+      >
+          <AppShell.Header style={headerStyle(theme)}>
+              <Title order={3} ml="lg"> Object Color Solid Renderer </Title>
+          </AppShell.Header>
+
+          <AppShell.Main>
               <Container my="xl" fluid>
-                {/* Absolute positioned OCS irrespective of the dropdown menus */}
-                <div style={OCSStyle}>
-                  <ObjectColorSolid/>
-                </div>
-
-                {/* Dropdown Menus/Buttons */}
-                <Grid>
-                  <Grid.Col span={1} style={{zIndex: 2}}>
-                    <SliceDisplay/>
-                  </Grid.Col>
-
-                  <Grid.Col span={10} style={{ position: 'relative' }}>
-                    {/* Just to space out the two sidebars */}
-                  </Grid.Col>
-
-                  <Grid.Col span={1} style={{zIndex: 2}}>
-                    <GraphDisplay/>
-                  </Grid.Col>
-                </Grid>
+                  <div style={OCSStyle}>
+                      <ObjectColorSolid/>
+                  </div>
+                  <Grid>
+                      <Grid.Col span={1} style={{zIndex: 2}}>
+                          <SliceDisplay/>
+                      </Grid.Col>
+                      <Grid.Col span={10} style={{ position: 'relative' }}></Grid.Col>
+                      <Grid.Col span={1} style={{zIndex: 2}}>
+                          <GraphDisplay/>
+                      </Grid.Col>
+                  </Grid>
               </Container>
-            </AppShell.Main>
-          </AppShell>
-        </AppContextProvider>
-    );
+          </AppShell.Main>
+      </AppShell>
+  );
 }

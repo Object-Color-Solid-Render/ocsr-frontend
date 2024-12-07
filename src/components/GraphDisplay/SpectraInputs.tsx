@@ -19,6 +19,7 @@ export default function SpectraInputs() {
   const [dropdownOptions, setDropdownOptions] = useState<string[]>([]);
 
   const {
+    spectralDB,
     spectralPeaks,
     setSpectralPeaks,
     spectralPeaksNew,
@@ -36,6 +37,41 @@ export default function SpectraInputs() {
     wavelengthBounds,
     setWavelengthBounds,
   } = useAppContext();
+
+  // Update dropdown options whenever spectralDB changes
+  useEffect(() => {
+    if (spectralDB) {
+      const options = Object.keys(spectralDB);
+      setDropdownOptions(options);
+    }
+  }, [spectralDB]);
+
+  // Update spectral peaks when a species is selected
+  
+  useEffect(() => {
+    if (selectedOption && spectralDB[selectedOption]) {
+      const peaks = spectralDB[selectedOption].peaks;
+      
+      // Update spectral peaks based on available peaks
+      const newPeaks = {
+        peakWavelength1: peaks[0],
+        peakWavelength2: peaks[1],
+        peakWavelength3: peaks[2],
+        peakWavelength4: peaks[3],
+      };
+      
+      setSpectralPeaks(newPeaks);
+
+      // Update active cones based on available peaks
+      setActiveCones({
+        isCone1Active: peaks[0] != 0,
+        isCone2Active: peaks[1] != 0,
+        isCone3Active: peaks[2] != 0,
+        isCone4Active: peaks[3] != 0,
+      });
+    }
+  }, [selectedOption, spectralDB]);
+  
 
   const handleSpectralPeaksChange = (name: string, value: number) => {
     setSpectralPeaks((prev) => ({
@@ -63,53 +99,44 @@ export default function SpectraInputs() {
     event.preventDefault();
     setSubmitSwitch(-1 * submitSwitch);
 
-    console.log("new stuff:", spectralPeaksNew)
-
+    console.log("Selected Species:", selectedOption);
+    if (selectedOption) {
+      console.log("Species Data:", spectralDB[selectedOption]);
+    }
     console.log("Wavelength Bounds:", wavelengthBounds);
     console.log("Cone Peaks:", spectralPeaks);
     console.log("Active Cones:", activeCones);
     console.log("Omit Beta Band:", omitBetaBand);
     console.log("Is Max Basis:", isMaxBasis);
     console.log("Wavelength Sample Resolution:", wavelengthSampleResolution);
-    console.log("Selected Option:", selectedOption);
   };
 
-  // Simulate adding arbitrary options to the dropdown
-  const handleAddOption = () => {
-    const newOption = `Option ${dropdownOptions.length + 1}`;
-    setDropdownOptions((prev) => [...prev, newOption]);
-  };
-
-  // When necessary, load in the OCS
-  useEffect(() => {
-
-    fetch(`http://localhost:5000/get_spectral_db`)
-      .then(response => {
-        if (!response.ok) throw new Error('Failed to fetch data');
-        return response.json();
-      })
-      .then(data => {
-        
-
-        console.log("Loaded data:");
-        console.log(data);
-
-      })
-      .catch(error => console.error('Error fetching data:', error));
-  }, [submitSwitch]);
-  
   return (
     <div>
       <DropdownButton open={open} setOpen={setOpen} leftDropdown={false} />
       <DropdownContent open={open} width={400}>
         <Stack gap="m">
           <form onSubmit={handleSubmit}>
+            <Text weight={500} fw={500} size="md" mb="sm">
+              Select Species
+            </Text>
+            <Select
+              placeholder="Select a species"
+              data={dropdownOptions}
+              value={selectedOption}
+              onChange={setSelectedOption}
+              searchable
+              nothingFound="No species found"
+              dropdownPosition="bottom"
+              style={{ marginBottom: "16px" }}
+            />
+
             <TextInput
               label="Minimum Wavelength"
               placeholder="Minimum Wavelength"
               name="min"
               type="number"
-              value={wavelengthBounds.min || ""} // Avoid undefined
+              value={wavelengthBounds.min || ""}
               onChange={handleBoundsInputChange}
               required
             />
@@ -118,7 +145,7 @@ export default function SpectraInputs() {
               placeholder="Maximum Wavelength"
               name="max"
               type="number"
-              value={wavelengthBounds.max || ""} // Avoid undefined
+              value={wavelengthBounds.max || ""}
               onChange={handleBoundsInputChange}
               required
             />
@@ -134,7 +161,7 @@ export default function SpectraInputs() {
                   </Text>
                   <Slider
                     label={null}
-                    value={spectralPeaks[`peakWavelength${index + 1}`] || "N/A"}
+                    value={spectralPeaks[`peakWavelength${index + 1}`] || 0}
                     onChange={(value) =>
                       handleSpectralPeaksChange(`peakWavelength${index + 1}`, value)
                     }
@@ -152,39 +179,10 @@ export default function SpectraInputs() {
               )
             )}
             <Checkbox
-              label="Omit Beta Band"
-              checked={omitBetaBand}
-              onChange={(event) => setOmitBetaBand(event.currentTarget.checked)}
-              mb="sm"
-            />
-            <Checkbox
               label="Max Basis"
               checked={isMaxBasis}
               onChange={(event) => setIsMaxBasis(event.currentTarget.checked)}
               mb="sm"
-            />
-            <TextInput
-              label="Wavelength Sample Resolution"
-              placeholder="Enter Resolution"
-              type="number"
-              value={wavelengthSampleResolution || ""} // Avoid undefined
-              onChange={(event) => setWavelengthSampleResolution(Number(event.target.value))}
-              required
-              mb="sm"
-            />
-
-            <Text weight={500} fw={500} size="md" mb="sm">
-              Select Option
-            </Text>
-            <Select
-              placeholder="Pick one"
-              data={dropdownOptions}
-              value={selectedOption}
-              onChange={setSelectedOption}
-              searchable
-              nothingFound="No options"
-              dropdownPosition="bottom"
-              style={{ marginBottom: "16px" }}
             />
             <Button type="submit" fullWidth>
               Submit
