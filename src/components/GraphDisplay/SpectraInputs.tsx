@@ -156,7 +156,7 @@ export default function SpectraInputs() {
         onClose={() => setDrawerOpened(false)}
         title="Edit Entries"
         padding="xl"
-        size="xl"
+        size="md" // Changed size from "xl" to "md"
         position="right" // Set drawer to pop out from RHS
       >
         <form onSubmit={handleSubmit}>

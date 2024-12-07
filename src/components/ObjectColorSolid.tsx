@@ -4,6 +4,7 @@ import { OrbitControls, shaderMaterial } from '@react-three/drei';
 import * as THREE from 'three';
 import { useAppContext } from './AppLayout';
 import { Button } from '@mantine/core';
+import { EntryParams } from './SpectraInputs'; // Ensure EntryParams is imported
 
 // Define custom shader material with uniforms
 const CustomShaderMaterial = shaderMaterial(
@@ -111,11 +112,7 @@ function UpdateCamera() {
 
 // Main component to render the Object Color Solid
 export default function ObjectColorSolid() {
-  const [ocsData, setOcsData] = useState<OcsData>({
-    geometry: new THREE.BufferGeometry(),
-    vertexShader: '',
-    fragmentShader: '',
-  });
+  const [ocsDataArray, setOcsDataArray] = useState<OcsData[]>([]); // Changed to array to handle multiple geometries
   const [ocs2Data, setOcs2Data] = useState<OcsData>({
     geometry: new THREE.BufferGeometry(),
     vertexShader: '',
@@ -164,21 +161,22 @@ export default function ObjectColorSolid() {
   useEffect(() => {
     if (entries.length === 0 || !fetchTrigger) return;
 
-    const firstEntry = entries[0];
-    const params = new URLSearchParams({
-      minWavelength: firstEntry.wavelengthBounds.min.toString(),
-      maxWavelength: firstEntry.wavelengthBounds.max.toString(),
-      omitBetaBand: firstEntry.omitBetaBand.toString(),
-      isMaxBasis: firstEntry.isMaxBasis.toString(),
-      wavelengthSampleResolution: firstEntry.wavelengthSampleResolution.toString(),
-      peakWavelength1: firstEntry.spectralPeaks.peakWavelength1.toString(),
-      peakWavelength2: firstEntry.spectralPeaks.peakWavelength2.toString(),
-      peakWavelength3: firstEntry.spectralPeaks.peakWavelength3.toString(),
-      peakWavelength4: firstEntry.spectralPeaks.peakWavelength4.toString(),
-      isCone1Active: firstEntry.activeCones.isCone1Active.toString(),
-      isCone2Active: firstEntry.activeCones.isCone2Active.toString(),
-      isCone3Active: firstEntry.activeCones.isCone3Active.toString(),
-      isCone4Active: firstEntry.activeCones.isCone4Active.toString()
+    const params = new URLSearchParams();
+
+    entries.forEach((entry, index) => {
+      params.append(`entries[${index}][minWavelength]`, entry.wavelengthBounds.min.toString());
+      params.append(`entries[${index}][maxWavelength]`, entry.wavelengthBounds.max.toString());
+      params.append(`entries[${index}][omitBetaBand]`, entry.omitBetaBand.toString());
+      params.append(`entries[${index}][isMaxBasis]`, entry.isMaxBasis.toString());
+      params.append(`entries[${index}][wavelengthSampleResolution]`, entry.wavelengthSampleResolution.toString());
+      params.append(`entries[${index}][peakWavelength1]`, entry.spectralPeaks.peakWavelength1.toString());
+      params.append(`entries[${index}][peakWavelength2]`, entry.spectralPeaks.peakWavelength2.toString());
+      params.append(`entries[${index}][peakWavelength3]`, entry.spectralPeaks.peakWavelength3.toString());
+      params.append(`entries[${index}][peakWavelength4]`, entry.spectralPeaks.peakWavelength4.toString());
+      params.append(`entries[${index}][isCone1Active]`, entry.activeCones.isCone1Active.toString());
+      params.append(`entries[${index}][isCone2Active]`, entry.activeCones.isCone2Active.toString());
+      params.append(`entries[${index}][isCone3Active]`, entry.activeCones.isCone3Active.toString());
+      params.append(`entries[${index}][isCone4Active]`, entry.activeCones.isCone4Active.toString());
     });
 
     fetch(`http://localhost:5050/get_ocs_data?${params.toString()}`)
@@ -186,36 +184,35 @@ export default function ObjectColorSolid() {
         if (!response.ok) throw new Error('Failed to fetch data');
         return response.json();
       })
-      .then(data => {
-        // Create geometry from fetched data
-        const geometry = new THREE.BufferGeometry();
-        geometry.setAttribute('position', new THREE.Float32BufferAttribute(data.vertices.flat(), 3));
-        geometry.setAttribute('normal', new THREE.Float32BufferAttribute(data.normals.flat(), 3));
-        geometry.setAttribute('color', new THREE.Float32BufferAttribute(data.colors.flat(), 3));
-        geometry.setIndex(data.indices.flat());
-        geometry.translate(-0.5, -0.5, -0.5);
+      .then(dataArray => {
+        const newOcsDataArray = dataArray.map((data: any, index: number) => {
+          // Create geometry from fetched data
+          const geometry = new THREE.BufferGeometry();
+          geometry.setAttribute('position', new THREE.Float32BufferAttribute(data.vertices.flat(), 3));
+          geometry.setAttribute('normal', new THREE.Float32BufferAttribute(data.normals.flat(), 3));
+          geometry.setAttribute('color', new THREE.Float32BufferAttribute(data.colors.flat(), 3));
+          geometry.setIndex(data.indices.flat());
 
-        const geometry2 = geometry.clone();
-        geometry2.translate(1.5, 0, 0);
+          // Offset each geometry to avoid overlap
+          geometry.translate(index * 1.5, 0, 0);
 
-        setOcsData({
-          geometry,
-          vertexShader: data.vertexShader,
-          fragmentShader: data.fragmentShader,
+          return {
+            geometry,
+            vertexShader: data.vertexShader,
+            fragmentShader: data.fragmentShader,
+          } as OcsData;
         });
 
-        setOcs2Data({
-          geometry: geometry2,
-          vertexShader: data.vertexShader,
-          fragmentShader: data.fragmentShader,
-        });
+        setOcsDataArray(newOcsDataArray);
 
-        setWavelengths(data.wavelengths.flat());
+        // Update wavelengths and cone responses if needed
+        // Assuming dataArray[0] has the required data
+        setWavelengths(dataArray[0].wavelengths.flat());
         setConeResponses({
-          coneResponse1: data.s_response.flat(),
-          coneResponse2: data.m_response.flat(),
-          coneResponse3: data.l_response.flat(),
-          coneResponse4: data.q_response.flat(),
+          coneResponse1: dataArray[0].s_response.flat(),
+          coneResponse2: dataArray[0].m_response.flat(),
+          coneResponse3: dataArray[0].l_response.flat(),
+          coneResponse4: dataArray[0].q_response.flat(),
         });
       })
       .catch(error => console.error('Error fetching data:', error))
@@ -225,29 +222,6 @@ export default function ObjectColorSolid() {
   return (
     <div style={{ width: '100%', height: '100%', position: 'relative' }}>
       {/* Button to update the entry parameters */}
-      <Button
-        onClick={() => {
-          // Update the first entry with new parameters
-          setEntries(prevEntries => {
-            const newEntries = [...prevEntries];
-            newEntries[0] = {
-              ...newEntries[0],
-              wavelengthBounds: { min: 400, max: 700 },
-              spectralPeaks: {
-                peakWavelength1: 460,
-                peakWavelength2: 550,
-                peakWavelength3: 580,
-                peakWavelength4: 600,
-              },
-            };
-            return newEntries;
-          });
-          setFetchTrigger(true);
-        }}
-      >
-        Update Entry
-      </Button>
-
       {/* Canvas to render the 3D scene */}
       <Canvas
         orthographic
@@ -277,14 +251,15 @@ export default function ObjectColorSolid() {
       >
         <UpdateCamera />
         {sliceDimension === 2 && sliceVisible && <MovingYSlice />}
-        {ocsData && (
+        {ocsDataArray.map((ocsData, index) => (
           <CustomMesh
+            key={index}
             geometry={ocsData.geometry}
             vertexShader={ocsData.vertexShader}
             fragmentShader={ocsData.fragmentShader}
             center={[0, 0, 0]}
           />
-        )}
+        ))}
         <OrbitControls target={[0, 0, 0]} />
         <axesHelper args={[5]} />
       </Canvas>
