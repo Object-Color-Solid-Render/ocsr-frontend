@@ -7,10 +7,9 @@ import {
   Group,
   Text,
   Select,
+  Drawer, // Added import
 } from '@mantine/core';
 import { useState, useEffect } from 'react';
-import DropdownContent from '../Dropdown/DropdownContent';
-import DropdownButton from '../Dropdown/DropdownButton';
 import { useAppContext } from '../AppLayout';
 
 // Type definitions
@@ -39,6 +38,7 @@ export default function SpectraInputs() {
   const [dropdownOptions, setDropdownOptions] = useState<string[]>([]);
   const { entries, setEntries } = useAppContext();
   const { spectralDB, submitSwitch, setSubmitSwitch, setFetchTrigger } = useAppContext();
+  const [drawerOpened, setDrawerOpened] = useState(false); // Added state for Drawer
 
   // Update dropdown options when spectralDB changes
   useEffect(() => {
@@ -141,45 +141,64 @@ export default function SpectraInputs() {
     if (entries.length > 0) {
       setFetchTrigger(true);
       setSubmitSwitch(-1 * submitSwitch);
+      setDrawerOpened(false); // Close drawer upon submission
     }
   };
 
   return (
     <div>
-      <DropdownButton open={open} setOpen={setOpen} leftDropdown={false} />
-      <DropdownContent open={open} width={400}>
-        <Stack gap="m">
-          <Button
-            onClick={() =>
-              setEntries([
-                ...entries,
-                {
-                  wavelengthBounds: { min: 390, max: 700 },
-                  omitBetaBand: true,
-                  isMaxBasis: false,
-                  wavelengthSampleResolution: 20,
-                  spectralPeaks: {
-                    peakWavelength1: 455,
-                    peakWavelength2: 543,
-                    peakWavelength3: 566,
-                    peakWavelength4: 560,
+      {/* Button to open the drawer */}
+      <Button onClick={() => setDrawerOpened(true)}>Edit Entries</Button>
+
+      {/* Drawer overlay for entry edits */}
+      <Drawer
+        opened={drawerOpened}
+        onClose={() => setDrawerOpened(false)}
+        title="Edit Entries"
+        padding="xl"
+        size="xl"
+        position="right" // Set drawer to pop out from RHS
+      >
+        <form onSubmit={handleSubmit}>
+          {/* Submit and Add Entry buttons at the top */}
+          <Group position="apart" mb="md">
+            <Button type="submit">Submit</Button>
+            <Button
+              variant="default"
+              onClick={() =>
+                setEntries([
+                  ...entries,
+                  {
+                    wavelengthBounds: { min: 390, max: 700 },
+                    omitBetaBand: true,
+                    isMaxBasis: false,
+                    wavelengthSampleResolution: 20,
+                    spectralPeaks: {
+                      peakWavelength1: 455,
+                      peakWavelength2: 543,
+                      peakWavelength3: 566,
+                      peakWavelength4: 560,
+                    },
+                    activeCones: {
+                      isCone1Active: true,
+                      isCone2Active: true,
+                      isCone3Active: true,
+                      isCone4Active: false,
+                    },
+                    selectedSpecies: null,
                   },
-                  activeCones: {
-                    isCone1Active: true,
-                    isCone2Active: true,
-                    isCone3Active: true,
-                    isCone4Active: false,
-                  },
-                  selectedSpecies: null,
-                },
-              ])
-            }
-          >
-            Add Entry
-          </Button>
-          <form onSubmit={handleSubmit}>
+                ])
+              }
+            >
+              Add Entry
+            </Button>
+          </Group>
+
+          {/* Entries stack */}
+          <Stack spacing="xl">
             {entries.map((entry, index) => (
-              <div key={index}>
+              <div key={index} style={{ borderBottom: '1px solid #e9ecef', paddingBottom: '16px' }}>
+                {/* Species Selection */}
                 <Text weight={500} size="md" mb="sm">
                   Select Species
                 </Text>
@@ -191,28 +210,28 @@ export default function SpectraInputs() {
                   searchable
                   nothingFound="No species found"
                   dropdownPosition="bottom"
-                  style={{ marginBottom: '16px' }}
+                  mb="md"
                 />
 
                 {/* Wavelength Bounds Inputs */}
-                <TextInput
-                  label="Minimum Wavelength"
-                  placeholder="Minimum Wavelength"
-                  name="min"
-                  type="number"
-                  value={entry.wavelengthBounds.min}
-                  onChange={e => handleBoundsInputChange(e, index)}
-                  required
-                />
-                <TextInput
-                  label="Maximum Wavelength"
-                  placeholder="Maximum Wavelength"
-                  name="max"
-                  type="number"
-                  value={entry.wavelengthBounds.max}
-                  onChange={e => handleBoundsInputChange(e, index)}
-                  required
-                />
+                <Group grow mb="md">
+                  <TextInput
+                    label="Min Wavelength"
+                    name="min"
+                    type="number"
+                    value={entry.wavelengthBounds.min}
+                    onChange={e => handleBoundsInputChange(e, index)}
+                    required
+                  />
+                  <TextInput
+                    label="Max Wavelength"
+                    name="max"
+                    type="number"
+                    value={entry.wavelengthBounds.max}
+                    onChange={e => handleBoundsInputChange(e, index)}
+                    required
+                  />
+                </Group>
 
                 {/* Spectral Peaks and Active Cones */}
                 <Text weight={500} size="md" mb="sm">
@@ -221,13 +240,10 @@ export default function SpectraInputs() {
                 {(['isCone1Active', 'isCone2Active', 'isCone3Active', 'isCone4Active'] as const).map(
                   (coneKey, coneIndex) => (
                     <Group key={coneKey} position="apart" mb="sm">
-                      <Text size="sm" style={{ minWidth: '0px' }}>
-                        {`${entry.spectralPeaks[
-                          `peakWavelength${coneIndex + 1}` as keyof EntryParams['spectralPeaks']
-                        ] || 'N/A'} nm`}
+                      <Text size="sm" style={{ minWidth: '60px' }}>
+                        {`Cone ${coneIndex + 1}`}
                       </Text>
                       <Slider
-                        label={null}
                         value={
                           entry.spectralPeaks[
                             `peakWavelength${coneIndex + 1}` as keyof EntryParams['spectralPeaks']
@@ -269,12 +285,9 @@ export default function SpectraInputs() {
                 />
               </div>
             ))}
-            <Button type="submit" fullWidth>
-              Submit
-            </Button>
-          </form>
-        </Stack>
-      </DropdownContent>
+          </Stack>
+        </form>
+      </Drawer>
     </div>
   );
 }
