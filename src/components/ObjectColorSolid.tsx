@@ -130,7 +130,7 @@ export default function ObjectColorSolid() {
     console.log(params.toString());
     console.log("================================================================================")
 
-    fetch(`http://localhost:5000/get_ocs_data?${params.toString()}`)
+    fetch(`http://localhost:5050/get_ocs_data?${params.toString()}`)
       .then(response => {
         if (!response.ok) throw new Error('Failed to fetch data');
         return response.json();

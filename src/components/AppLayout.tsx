@@ -282,7 +282,7 @@ export default function AppLayout() {
     
     console.log("Fetching DB data...");
   
-    fetch(`http://localhost:5000/get_spectral_db`)
+    fetch(`http://localhost:5050/get_spectral_db`)
       .then((response) => {
         if (!response.ok) throw new Error('Failed to fetch data');
         return response.json();
