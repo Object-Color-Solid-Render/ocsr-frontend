@@ -54,10 +54,10 @@ export default function SpectraInputs() {
       
       // Update spectral peaks based on available peaks
       const newPeaks = {
-        peakWavelength1: peaks[0] || spectralPeaks.peakWavelength1,
-        peakWavelength2: peaks[1] || spectralPeaks.peakWavelength2,
-        peakWavelength3: peaks[2] || spectralPeaks.peakWavelength3,
-        peakWavelength4: peaks[3] || spectralPeaks.peakWavelength4,
+        peakWavelength1: peaks[0],
+        peakWavelength2: peaks[1],
+        peakWavelength3: peaks[2],
+        peakWavelength4: peaks[3],
       };
       
       setSpectralPeaks(newPeaks);
@@ -179,24 +179,9 @@ export default function SpectraInputs() {
               )
             )}
             <Checkbox
-              label="Omit Beta Band"
-              checked={omitBetaBand}
-              onChange={(event) => setOmitBetaBand(event.currentTarget.checked)}
-              mb="sm"
-            />
-            <Checkbox
               label="Max Basis"
               checked={isMaxBasis}
               onChange={(event) => setIsMaxBasis(event.currentTarget.checked)}
-              mb="sm"
-            />
-            <TextInput
-              label="Wavelength Sample Resolution"
-              placeholder="Enter Resolution"
-              type="number"
-              value={wavelengthSampleResolution || ""}
-              onChange={(event) => setWavelengthSampleResolution(Number(event.target.value))}
-              required
               mb="sm"
             />
             <Button type="submit" fullWidth>
