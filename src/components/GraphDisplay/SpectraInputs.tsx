@@ -13,29 +13,36 @@ import DropdownContent from "../Dropdown/DropdownContent";
 import DropdownButton from "../Dropdown/DropdownButton";
 import { useAppContext } from "../AppLayout";
 
+export type EntryParams = {
+  wavelengthBounds: { min: number, max: number },
+  omitBetaBand: boolean,
+  isMaxBasis: boolean,
+  wavelengthSampleResolution: number,
+  spectralPeaks: {
+    peakWavelength1: number,
+    peakWavelength2: number,
+    peakWavelength3: number,
+    peakWavelength4: number,
+  },
+  activeCones: {
+    isCone1Active: boolean,
+    isCone2Active: boolean,
+    isCone3Active: boolean,
+    isCone4Active: boolean,
+  },
+  selectedSpecies: string | null,
+};
+
 export default function SpectraInputs() {
   const [open, setOpen] = useState(false);
-  const [selectedOption, setSelectedOption] = useState<string | null>(null);
   const [dropdownOptions, setDropdownOptions] = useState<string[]>([]);
+  const { entries, setEntries } = useAppContext();
 
   const {
     spectralDB,
-    spectralPeaks,
-    setSpectralPeaks,
-    spectralPeaksNew,
-    setSpectralPeaksNew,
-    activeCones,
-    setActiveCones,
-    omitBetaBand,
-    setOmitBetaBand,
-    isMaxBasis,
-    setIsMaxBasis,
-    wavelengthSampleResolution,
-    setWavelengthSampleResolution,
     submitSwitch,
     setSubmitSwitch,
-    wavelengthBounds,
-    setWavelengthBounds,
+    setFetchTrigger,
   } = useAppContext();
 
   // Update dropdown options whenever spectralDB changes
@@ -46,69 +53,85 @@ export default function SpectraInputs() {
     }
   }, [spectralDB]);
 
-  // Update spectral peaks when a species is selected
-  
+  // Add a default entry on start
   useEffect(() => {
-    if (selectedOption && spectralDB[selectedOption]) {
-      const peaks = spectralDB[selectedOption].peaks;
-      
-      // Update spectral peaks based on available peaks
-      const newPeaks = {
-        peakWavelength1: peaks[0],
-        peakWavelength2: peaks[1],
-        peakWavelength3: peaks[2],
-        peakWavelength4: peaks[3],
-      };
-      
-      setSpectralPeaks(newPeaks);
+    const defaultEntry = {
+      wavelengthBounds: { min: 390, max: 700 },
+      omitBetaBand: true,
+      isMaxBasis: false,
+      wavelengthSampleResolution: 20,
+      spectralPeaks: {
+        peakWavelength1: 455,
+        peakWavelength2: 543,
+        peakWavelength3: 566,
+        peakWavelength4: 560,
+      },
+      activeCones: {
+        isCone1Active: true,
+        isCone2Active: true,
+        isCone3Active: true,
+        isCone4Active: false,
+      },
+      selectedSpecies: null,
+    };
+    setEntries([defaultEntry]);
+  }, [setEntries]);
 
-      // Update active cones based on available peaks
-      setActiveCones({
-        isCone1Active: peaks[0] != 0,
-        isCone2Active: peaks[1] != 0,
-        isCone3Active: peaks[2] != 0,
-        isCone4Active: peaks[3] != 0,
-      });
-    }
-  }, [selectedOption, spectralDB]);
-  
-
-  const handleSpectralPeaksChange = (name: string, value: number) => {
-    setSpectralPeaks((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
+  const handleSpectralPeaksChange = (name: string, value: number, index: number) => {
+    setEntries((prev) => {
+      const newEntries = [...prev];
+      newEntries[index].spectralPeaks[name] = value;
+      return newEntries;
+    });
   };
 
-  const handleActiveConesChange = (name: string) => {
-    setActiveCones((prev) => ({
-      ...prev,
-      [name]: !prev[name],
-    }));
+  const handleActiveConesChange = (name: string, index: number) => {
+    setEntries((prev) => {
+      const newEntries = [...prev];
+      newEntries[index].activeCones[name] = !newEntries[index].activeCones[name];
+      return newEntries;
+    });
   };
 
-  const handleBoundsInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleBoundsInputChange = (event: React.ChangeEvent<HTMLInputElement>, index: number) => {
     const { name, value } = event.target;
-    setWavelengthBounds({
-      ...wavelengthBounds,
-      [name]: Number(value),
+    setEntries((prev) => {
+      const newEntries = [...prev];
+      newEntries[index].wavelengthBounds[name] = Number(value);
+      return newEntries;
+    });
+  };
+
+  const handleSpeciesChange = (value: string | null, index: number) => {
+    setEntries((prev) => {
+      const newEntries = [...prev];
+      newEntries[index].selectedSpecies = value;
+      if (value && spectralDB[value]) {
+        const peaks = spectralDB[value].peaks;
+        const newPeaks = {
+          peakWavelength1: peaks[0],
+          peakWavelength2: peaks[1],
+          peakWavelength3: peaks[2],
+          peakWavelength4: peaks[3],
+        };
+        newEntries[index].spectralPeaks = newPeaks;
+        newEntries[index].activeCones = {
+          isCone1Active: peaks[0] !== 0,
+          isCone2Active: peaks[1] !== 0,
+          isCone3Active: peaks[2] !== 0,
+          isCone4Active: peaks[3] !== 0,
+        };
+      }
+      return newEntries;
     });
   };
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    setSubmitSwitch(-1 * submitSwitch);
-
-    console.log("Selected Species:", selectedOption);
-    if (selectedOption) {
-      console.log("Species Data:", spectralDB[selectedOption]);
+    if (entries.length > 0) {
+      setFetchTrigger(true);
+      setSubmitSwitch(-1 * submitSwitch);
     }
-    console.log("Wavelength Bounds:", wavelengthBounds);
-    console.log("Cone Peaks:", spectralPeaks);
-    console.log("Active Cones:", activeCones);
-    console.log("Omit Beta Band:", omitBetaBand);
-    console.log("Is Max Basis:", isMaxBasis);
-    console.log("Wavelength Sample Resolution:", wavelengthSampleResolution);
   };
 
   return (
@@ -116,74 +139,101 @@ export default function SpectraInputs() {
       <DropdownButton open={open} setOpen={setOpen} leftDropdown={false} />
       <DropdownContent open={open} width={400}>
         <Stack gap="m">
+          <Button onClick={() => setEntries([...entries, {
+            wavelengthBounds: { min: 390, max: 700 },
+            omitBetaBand: true,
+            isMaxBasis: false,
+            wavelengthSampleResolution: 20,
+            spectralPeaks: {
+              peakWavelength1: 455,
+              peakWavelength2: 543,
+              peakWavelength3: 566,
+              peakWavelength4: 560,
+            },
+            activeCones: {
+              isCone1Active: true,
+              isCone2Active: true,
+              isCone3Active: true,
+              isCone4Active: false,
+            },
+            selectedSpecies: null,
+          }])}>Add Entry</Button>
           <form onSubmit={handleSubmit}>
-            <Text weight={500} fw={500} size="md" mb="sm">
-              Select Species
-            </Text>
-            <Select
-              placeholder="Select a species"
-              data={dropdownOptions}
-              value={selectedOption}
-              onChange={setSelectedOption}
-              searchable
-              nothingFound="No species found"
-              dropdownPosition="bottom"
-              style={{ marginBottom: "16px" }}
-            />
+            {entries.map((entry, index) => (
+              <div key={index}>
+                <Text weight={500} fw={500} size="md" mb="sm">
+                  Select Species
+                </Text>
+                <Select
+                  placeholder="Select a species"
+                  data={dropdownOptions}
+                  value={entry.selectedSpecies}
+                  onChange={(value) => handleSpeciesChange(value, index)}
+                  searchable
+                  nothingFound="No species found"
+                  dropdownPosition="bottom"
+                  style={{ marginBottom: "16px" }}
+                />
 
-            <TextInput
-              label="Minimum Wavelength"
-              placeholder="Minimum Wavelength"
-              name="min"
-              type="number"
-              value={wavelengthBounds.min || ""}
-              onChange={handleBoundsInputChange}
-              required
-            />
-            <TextInput
-              label="Maximum Wavelength"
-              placeholder="Maximum Wavelength"
-              name="max"
-              type="number"
-              value={wavelengthBounds.max || ""}
-              onChange={handleBoundsInputChange}
-              required
-            />
+                <TextInput
+                  label="Minimum Wavelength"
+                  placeholder="Minimum Wavelength"
+                  name="min"
+                  type="number"
+                  value={entry.wavelengthBounds.min}
+                  onChange={(e) => handleBoundsInputChange(e, index)}
+                  required
+                />
+                <TextInput
+                  label="Maximum Wavelength"
+                  placeholder="Maximum Wavelength"
+                  name="max"
+                  type="number"
+                  value={entry.wavelengthBounds.max}
+                  onChange={(e) => handleBoundsInputChange(e, index)}
+                  required
+                />
 
-            <Text weight={500} fw={500} size="md" mb="sm">
-              Spectral Peaks (nm)
-            </Text>
-            {["isCone1Active", "isCone2Active", "isCone3Active", "isCone4Active"].map(
-              (coneKey, index) => (
-                <Group key={coneKey} position="apart" mb="sm">
-                  <Text size="sm" style={{ minWidth: "0px" }}>
-                    {`${spectralPeaks[`peakWavelength${index + 1}`] || "N/A"} nm`}
-                  </Text>
-                  <Slider
-                    label={null}
-                    value={spectralPeaks[`peakWavelength${index + 1}`] || 0}
-                    onChange={(value) =>
-                      handleSpectralPeaksChange(`peakWavelength${index + 1}`, value)
-                    }
-                    min={380}
-                    max={700}
-                    step={1}
-                    disabled={!activeCones[coneKey]}
-                    style={{ flexGrow: 1 }}
-                  />
-                  <Checkbox
-                    checked={activeCones[coneKey] || false}
-                    onChange={() => handleActiveConesChange(coneKey)}
-                  />
-                </Group>
-              )
-            )}
-            <Checkbox
-              label="Max Basis"
-              checked={isMaxBasis}
-              onChange={(event) => setIsMaxBasis(event.currentTarget.checked)}
-              mb="sm"
-            />
+                <Text weight={500} fw={500} size="md" mb="sm">
+                  Spectral Peaks (nm)
+                </Text>
+                {["isCone1Active", "isCone2Active", "isCone3Active", "isCone4Active"].map(
+                  (coneKey, coneIndex) => (
+                    <Group key={coneKey} position="apart" mb="sm">
+                      <Text size="sm" style={{ minWidth: "0px" }}>
+                        {`${entry.spectralPeaks[`peakWavelength${coneIndex + 1}`] || "N/A"} nm`}
+                      </Text>
+                      <Slider
+                        label={null}
+                        value={entry.spectralPeaks[`peakWavelength${coneIndex + 1}`]}
+                        onChange={(value) =>
+                          handleSpectralPeaksChange(`peakWavelength${coneIndex + 1}`, value, index)
+                        }
+                        min={380}
+                        max={700}
+                        step={1}
+                        disabled={!entry.activeCones[coneKey]}
+                        style={{ flexGrow: 1 }}
+                      />
+                      <Checkbox
+                        checked={entry.activeCones[coneKey]}
+                        onChange={() => handleActiveConesChange(coneKey, index)}
+                      />
+                    </Group>
+                  )
+                )}
+                <Checkbox
+                  label="Max Basis"
+                  checked={entry.isMaxBasis}
+                  onChange={(event) => setEntries((prev) => {
+                    const newEntries = [...prev];
+                    newEntries[index].isMaxBasis = event.currentTarget.checked;
+                    return newEntries;
+                  })}
+                  mb="sm"
+                />
+              </div>
+            ))}
             <Button type="submit" fullWidth>
               Submit
             </Button>

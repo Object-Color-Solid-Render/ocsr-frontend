@@ -150,6 +150,12 @@ type AppContextType = {
 
   positionY: number;
   setPositionY: Dispatch<SetStateAction<number>>;
+
+  fetchTrigger: boolean;
+  setFetchTrigger: Dispatch<SetStateAction<boolean>>;
+
+  entries: EntryParams[];
+  setEntries: Dispatch<SetStateAction<EntryParams[]>>;
 };
 
 export const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -214,6 +220,8 @@ export const AppContextProvider = ({ children }: { children: ReactNode }) => {
   const [sliceVisible, setSliceVisible] = useState(false);
   const [sliceSwitch, setSliceSwitch] = useState(0);
   const [positionY, setPositionY] = useState(0);
+  const [fetchTrigger, setFetchTrigger] = useState(false);
+  const [entries, setEntries] = useState<EntryParams[]>([]);
 
   return (
     <AppContext.Provider
@@ -259,6 +267,11 @@ export const AppContextProvider = ({ children }: { children: ReactNode }) => {
         setSliceSwitch,
         positionY,
         setPositionY,
+
+        fetchTrigger,
+        setFetchTrigger,
+        entries,
+        setEntries,
       }}
     >
       {children}
