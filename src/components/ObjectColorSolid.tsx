@@ -5,98 +5,127 @@ import * as THREE from 'three';
 import { useAppContext } from './AppLayout';
 import { Button } from '@mantine/core';
 
+// Define custom shader material with uniforms
 const CustomShaderMaterial = shaderMaterial(
-  { col: new THREE.Color(0xff00ff) },
-  '',
-  ''
+  { col: new THREE.Color(0xff00ff) }, // Uniforms
+  '',  // Vertex shader placeholder
+  ''   // Fragment shader placeholder
 );
 
+// Extend to make the material available in JSX
 extend({ CustomShaderMaterial });
 
-export function CustomMesh({ geometry, vertexShader, fragmentShader, center }) {
-  const meshRef = useRef();
+// Type definition for CustomMesh props
+type CustomMeshProps = {
+  geometry: THREE.BufferGeometry;
+  vertexShader: string;
+  fragmentShader: string;
+  center: number[];
+};
+
+// Component to render a custom mesh with shader material
+export function CustomMesh({ geometry, vertexShader, fragmentShader, center }: CustomMeshProps) {
+  const meshRef = useRef<THREE.Mesh>();
   const { clock } = useThree();
 
+  // Create material instance and set shaders
   const material = new CustomShaderMaterial();
   material.vertexShader = vertexShader;
   material.fragmentShader = fragmentShader;
 
   useFrame(() => {
     if (meshRef.current) {
+      // Update uniform color over time
       material.uniforms.col.value.setHSL(clock.getElapsedTime() % 1, 1, 0.5);
-      const point = new THREE.Vector3(...center)
     }
   });
 
-  return <mesh ref={meshRef} scale={0.5} geometry={geometry} material={material} />;
+  return (
+    <mesh ref={meshRef} scale={0.5} geometry={geometry} material={material} />
+  );
 }
 
+// Type definitions for data structures
 export type OcsData = {
-  geometry: THREE.BufferGeometry,
-  vertexShader: String,
-  fragmentShader: String,
-}
+  geometry: THREE.BufferGeometry;
+  vertexShader: string;
+  fragmentShader: string;
+};
 
 export type EntryParams = {
-  wavelengthBounds: { min: number, max: number },
-  omitBetaBand: boolean,
-  isMaxBasis: boolean,
-  wavelengthSampleResolution: number,
+  wavelengthBounds: { min: number; max: number };
+  omitBetaBand: boolean;
+  isMaxBasis: boolean;
+  wavelengthSampleResolution: number;
   spectralPeaks: {
-    peakWavelength1: number,
-    peakWavelength2: number,
-    peakWavelength3: number,
-    peakWavelength4: number,
-  },
+    peakWavelength1: number;
+    peakWavelength2: number;
+    peakWavelength3: number;
+    peakWavelength4: number;
+  };
   activeCones: {
-    isCone1Active: boolean,
-    isCone2Active: boolean,
-    isCone3Active: boolean,
-    isCone4Active: boolean,
-  }
-}
+    isCone1Active: boolean;
+    isCone2Active: boolean;
+    isCone3Active: boolean;
+    isCone4Active: boolean;
+  };
+};
 
-// Implement the moving slice
+// Component to implement the moving Y slice
 function MovingYSlice() {
-  const sliceRef = useRef()
-  const { positionY } = useAppContext()
+  const sliceRef = useRef<THREE.Mesh>();
+  const { positionY } = useAppContext();
 
   useFrame(() => {
-    if (sliceRef) sliceRef.current.position.y = positionY 
-  })
+    if (sliceRef.current) {
+      sliceRef.current.position.y = positionY;
+    }
+  });
 
   return (
     <mesh ref={sliceRef} position={[0, positionY, 0]} rotation={[-Math.PI / 2, 0, 0]}>
       <planeGeometry args={[0.5, 0.5]} />
       <meshBasicMaterial color="black" wireframe={true} />
     </mesh>
-  )
+  );
 }
 
+// Component to update the camera on resize
 function UpdateCamera() {
   const { camera, size } = useThree();
 
   useEffect(() => {
-      const updateCamera = () => {
-          const aspect = size.width / size.height;
-          camera.left = aspect * -1;
-          camera.right = aspect * 1;
-          camera.top = 1;
-          camera.bottom = -1;
-          camera.updateProjectionMatrix();
-      };
-      updateCamera();
+    const updateCamera = () => {
+      const aspect = size.width / size.height;
+      camera.left = aspect * -1;
+      camera.right = aspect * 1;
+      camera.top = 1;
+      camera.bottom = -1;
+      camera.updateProjectionMatrix();
+    };
+    updateCamera();
   }, [camera, size]);
 
   return null;
 }
 
+// Main component to render the Object Color Solid
 export default function ObjectColorSolid() {
-  const [ocsData, setOcsData] = useState<OcsData>({geometry: new THREE.BufferGeometry(), vertexShader: '', fragmentShader: ''});
-  const [ocs2Data, setOcs2Data] = useState<OcsData>({geometry: new THREE.BufferGeometry(), vertexShader: '', fragmentShader: ''});
-  const { fetchTrigger, setFetchTrigger, entries, setEntries } = useAppContext();
-  // Pass in relevant global state
-  const { 
+  const [ocsData, setOcsData] = useState<OcsData>({
+    geometry: new THREE.BufferGeometry(),
+    vertexShader: '',
+    fragmentShader: '',
+  });
+  const [ocs2Data, setOcs2Data] = useState<OcsData>({
+    geometry: new THREE.BufferGeometry(),
+    vertexShader: '',
+    fragmentShader: '',
+  });
+  const {
+    fetchTrigger,
+    setFetchTrigger,
+    entries,
+    setEntries,
     setConeResponses,
     setWavelengths,
     sliceDimension,
@@ -104,10 +133,10 @@ export default function ObjectColorSolid() {
     setSliceVisible,
     sliceSwitch,
     setSliceSwitch,
-    setPositionY
+    setPositionY,
   } = useAppContext();
 
-  // Add a default entry on start
+  // Add a default entry on component mount
   useEffect(() => {
     const defaultEntry = {
       wavelengthBounds: { min: 390, max: 700 },
@@ -131,11 +160,9 @@ export default function ObjectColorSolid() {
     setFetchTrigger(true);
   }, [setFetchTrigger, setEntries]);
 
-  // When necessary, load in the OCS
+  // Fetch OCS data when necessary
   useEffect(() => {
     if (entries.length === 0 || !fetchTrigger) return;
-    
-    console.log("fetching OCS data")
 
     const firstEntry = entries[0];
     const params = new URLSearchParams({
@@ -153,8 +180,6 @@ export default function ObjectColorSolid() {
       isCone3Active: firstEntry.activeCones.isCone3Active.toString(),
       isCone4Active: firstEntry.activeCones.isCone4Active.toString()
     });
-    
-    console.log("fetching OCS data with params", params.toString())
 
     fetch(`http://localhost:5000/get_ocs_data?${params.toString()}`)
       .then(response => {
@@ -162,6 +187,7 @@ export default function ObjectColorSolid() {
         return response.json();
       })
       .then(data => {
+        // Create geometry from fetched data
         const geometry = new THREE.BufferGeometry();
         geometry.setAttribute('position', new THREE.Float32BufferAttribute(data.vertices.flat(), 3));
         geometry.setAttribute('normal', new THREE.Float32BufferAttribute(data.normals.flat(), 3));
@@ -169,83 +195,90 @@ export default function ObjectColorSolid() {
         geometry.setIndex(data.indices.flat());
         geometry.translate(-0.5, -0.5, -0.5);
 
-        const geometry2 = geometry.clone()
-        geometry2.translate(1.5, 0, 0)
+        const geometry2 = geometry.clone();
+        geometry2.translate(1.5, 0, 0);
 
         setOcsData({
           geometry,
           vertexShader: data.vertexShader,
-          fragmentShader: data.fragmentShader
+          fragmentShader: data.fragmentShader,
         });
 
         setOcs2Data({
           geometry: geometry2,
           vertexShader: data.vertexShader,
-          fragmentShader: data.fragmentShader
+          fragmentShader: data.fragmentShader,
         });
 
-        setWavelengths(data.wavelengths.flat())
+        setWavelengths(data.wavelengths.flat());
         setConeResponses({
           coneResponse1: data.s_response.flat(),
           coneResponse2: data.m_response.flat(),
           coneResponse3: data.l_response.flat(),
           coneResponse4: data.q_response.flat(),
-        })
+        });
       })
       .catch(error => console.error('Error fetching data:', error))
       .finally(() => setFetchTrigger(false));
-  }, [fetchTrigger, entries]);
+  }, [fetchTrigger, entries, setConeResponses, setWavelengths, setFetchTrigger]);
 
   return (
     <div style={{ width: '100%', height: '100%', position: 'relative' }}>
-      <Button onClick={() => {
-        setEntries((prevEntries) => {
-          const newEntries = [...prevEntries];
-          newEntries[0] = {
-            ...newEntries[0],
-            wavelengthBounds: { min: 400, max: 700 },
-            spectralPeaks: {
-              peakWavelength1: 460,
-              peakWavelength2: 550,
-              peakWavelength3: 580,
-              peakWavelength4: 600,
-            },
-          };
-          return newEntries;
-        });
-        setFetchTrigger(true);
-      }}>Update Entry</Button>
-      <Canvas 
-        orthographic 
-        camera={{    
-            position: [0.43, 0.3, 0.4],
-            zoom: 1,
-            near: 0.001,
-            far: 10000,
-            top: 4,
-            bottom: -4,
-            left: window.innerWidth / window.innerHeight* -4,
-            right: window.innerWidth / window.innerHeight * 4
-        }} 
-        onMouseMove={(e) => {
-          const [smallestY, largestY] = [-0.3, 0.3]
-          const y = (-(e.clientY / window.innerHeight) * 2 + 1) * 0.7
-          setPositionY(Math.min(largestY, Math.max(smallestY, y)))
-        }}  
+      {/* Button to update the entry parameters */}
+      <Button
+        onClick={() => {
+          // Update the first entry with new parameters
+          setEntries(prevEntries => {
+            const newEntries = [...prevEntries];
+            newEntries[0] = {
+              ...newEntries[0],
+              wavelengthBounds: { min: 400, max: 700 },
+              spectralPeaks: {
+                peakWavelength1: 460,
+                peakWavelength2: 550,
+                peakWavelength3: 580,
+                peakWavelength4: 600,
+              },
+            };
+            return newEntries;
+          });
+          setFetchTrigger(true);
+        }}
+      >
+        Update Entry
+      </Button>
+
+      {/* Canvas to render the 3D scene */}
+      <Canvas
+        orthographic
+        camera={{
+          position: [0.43, 0.3, 0.4],
+          zoom: 1,
+          near: 0.001,
+          far: 10000,
+          top: 4,
+          bottom: -4,
+          left: window.innerWidth / window.innerHeight * -4,
+          right: window.innerWidth / window.innerHeight * 4,
+        }}
+        onMouseMove={e => {
+          // Update the Y position of the slice based on mouse movement
+          const [smallestY, largestY] = [-0.3, 0.3];
+          const y = (-(e.clientY / window.innerHeight) * 2 + 1) * 0.7;
+          setPositionY(Math.min(largestY, Math.max(smallestY, y)));
+        }}
         onPointerDown={() => {
-            if (sliceVisible) {
-              setSliceVisible(false)
-              setSliceSwitch(sliceSwitch + 1)
-            }
+          // Toggle slice visibility on pointer down
+          if (sliceVisible) {
+            setSliceVisible(false);
+            setSliceSwitch(sliceSwitch + 1);
           }
-        }
+        }}
       >
         <UpdateCamera />
-        {sliceDimension == 2 && sliceVisible && (
-          <MovingYSlice></MovingYSlice>
-        )}
+        {sliceDimension === 2 && sliceVisible && <MovingYSlice />}
         {ocsData && (
-          <CustomMesh 
+          <CustomMesh
             geometry={ocsData.geometry}
             vertexShader={ocsData.vertexShader}
             fragmentShader={ocsData.fragmentShader}
