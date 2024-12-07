@@ -258,8 +258,11 @@ export default function AppLayout() {
 
   // Fetch spectral database on mount
   useEffect(() => {
-    fetch(`http://localhost:5000/get_spectral_db`)
-      .then(response => {
+    
+    console.log("Fetching DB data...");
+  
+    fetch(`http://localhost:5050/get_spectral_db`)
+      .then((response) => {
         if (!response.ok) throw new Error('Failed to fetch data');
         return response.json();
       })
