@@ -189,16 +189,6 @@ export const AppContextProvider = ({ children }: { children: ReactNode }) => {
     isCone3Active: true,
     isCone4Active: false,
   });
-
-  // encapsulates both peaks and activecones
-  const [spectralPeaksNew, setSpectralPeaksNew] = useState({
-    spectralPeaksNew: {
-      peak1: { peak: DEFAULT_S_PEAK, isActive: true },
-      peak2: { peak: DEFAULT_M_PEAK, isActive: true },
-      peak3: { peak: DEFAULT_L_PEAK, isActive: true },
-      peak4: { peak: DEFAULT_Q_PEAK, isActive: false },
-    }
-  });
   
   const [sliceDimension, setSliceDimension] = useState(2);
   const [conePeaks, setConePeaks] = useState({
