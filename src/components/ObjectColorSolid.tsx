@@ -5,6 +5,7 @@ import * as THREE from 'three';
 import { useAppContext } from './AppLayout';
 import { Button } from '@mantine/core';
 import { EntryParams } from './SpectraInputs'; // Ensure EntryParams is imported
+import { useDrag } from '@use-gesture/react';
 
 // Define custom shader material with uniforms
 const CustomShaderMaterial = shaderMaterial(
@@ -22,10 +23,11 @@ type CustomMeshProps = {
   vertexShader: string;
   fragmentShader: string;
   center: number[];
+  rotationMatrix: THREE.Matrix4;
 };
 
 // Component to render a custom mesh with shader material
-export function CustomMesh({ geometry, vertexShader, fragmentShader, center }: CustomMeshProps) {
+export function CustomMesh({ geometry, vertexShader, fragmentShader, center, rotationMatrix }: CustomMeshProps & { rotationMatrix: THREE.Matrix4 }) {
   const meshRef = useRef<THREE.Mesh>();
   const { clock } = useThree();
 
@@ -38,11 +40,15 @@ export function CustomMesh({ geometry, vertexShader, fragmentShader, center }: C
     if (meshRef.current) {
       // Update uniform color over time
       material.uniforms.col.value.setHSL(clock.getElapsedTime() % 1, 1, 0.5);
+      meshRef.current.matrix.copy(rotationMatrix);
     }
   });
 
   return (
-    <mesh ref={meshRef} scale={0.5} geometry={geometry} material={material} />
+    <group position={center}>
+      <mesh ref={meshRef} scale={0.5} geometry={geometry} material={material} />
+      <axesHelper args={[1]} />
+    </group>
   );
 }
 
@@ -113,11 +119,8 @@ function UpdateCamera() {
 // Main component to render the Object Color Solid
 export default function ObjectColorSolid() {
   const [ocsDataArray, setOcsDataArray] = useState<OcsData[]>([]); // Changed to array to handle multiple geometries
-  const [ocs2Data, setOcs2Data] = useState<OcsData>({
-    geometry: new THREE.BufferGeometry(),
-    vertexShader: '',
-    fragmentShader: '',
-  });
+  const [rotationMatrix, setRotationMatrix] = useState(new THREE.Matrix4());
+  const [dragging, setDragging] = useState(false);
   const {
     fetchTrigger,
     setFetchTrigger,
@@ -193,9 +196,6 @@ export default function ObjectColorSolid() {
           geometry.setAttribute('color', new THREE.Float32BufferAttribute(data.colors.flat(), 3));
           geometry.setIndex(data.indices.flat());
 
-          // Offset each geometry to avoid overlap
-          geometry.translate(index * 1.5, 0, 0);
-
           return {
             geometry,
             vertexShader: data.vertexShader,
@@ -219,14 +219,30 @@ export default function ObjectColorSolid() {
       .finally(() => setFetchTrigger(false));
   }, [fetchTrigger, entries, setConeResponses, setWavelengths, setFetchTrigger]);
 
+  // Handle drag to rotate geometries
+  const bind = useDrag(({ movement: [mx, my], memo = rotationMatrix }) => {
+    const rotation = new THREE.Matrix4().makeRotationFromEuler(new THREE.Euler(my * 0.01, mx * 0.01, 0));
+    setRotationMatrix(rotation.multiply(memo));
+    return memo;
+  });
+
+  // Calculate grid positions for geometries
+  const gridPositions = ocsDataArray.map((_, index) => {
+    const cols = Math.ceil(Math.sqrt(ocsDataArray.length));
+    const rows = Math.ceil(ocsDataArray.length / cols);
+    const col = index % cols;
+    const row = Math.floor(index / cols);
+    return [(col - (cols - 1) / 2) * 1.5, (row - (rows - 1) / 2) * 1.5, 0];
+  });
+
   return (
-    <div style={{ width: '100%', height: '100%', position: 'relative' }}>
+    <div {...bind()} style={{ width: '100%', height: '100%', position: 'relative' }}>
       {/* Button to update the entry parameters */}
       {/* Canvas to render the 3D scene */}
       <Canvas
         orthographic
         camera={{
-          position: [0.43, 0.3, 0.4],
+          position: [2.15, 1.5, 2.0],
           zoom: 1,
           near: 0.001,
           far: 10000,
@@ -257,7 +273,8 @@ export default function ObjectColorSolid() {
             geometry={ocsData.geometry}
             vertexShader={ocsData.vertexShader}
             fragmentShader={ocsData.fragmentShader}
-            center={[0, 0, 0]}
+            center={gridPositions[index]} // Use grid positions
+            rotationMatrix={rotationMatrix}
           />
         ))}
         <OrbitControls target={[0, 0, 0]} />

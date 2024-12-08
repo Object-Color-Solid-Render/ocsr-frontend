@@ -19,6 +19,7 @@ import {
   useState,
 } from 'react';
 import React from 'react';
+import ocstudioLogo from '../ocstudio.svg';
 
 // Custom hook to get window dimensions
 const useWindowDimensions = () => {
@@ -290,9 +291,7 @@ export default function AppLayout() {
     <AppShell header={{ height: 50 }} padding="sm">
       {/* Header with title */}
       <AppShell.Header style={{ backgroundColor: theme.colors.myColor[7], color: "white", display: "flex", alignItems: "center" }}>
-        <Title order={3} ml="lg">
-          Object Color Solid Renderer
-        </Title>
+        <img src={ocstudioLogo} alt="OCStudio Logo" style={{ marginLeft: 'lg', height: '40px' }} />
       </AppShell.Header>
 
       {/* Main content */}
