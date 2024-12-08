@@ -24,12 +24,14 @@ type CustomMeshProps = {
   fragmentShader: string;
   center: number[];
   rotationMatrix: THREE.Matrix4;
+  index: number;
 };
 
 // Component to render a custom mesh with shader material
-export function CustomMesh({ geometry, vertexShader, fragmentShader, center, rotationMatrix }: CustomMeshProps & { rotationMatrix: THREE.Matrix4 }) {
+export function CustomMesh({ geometry, vertexShader, fragmentShader, center, rotationMatrix, index }: CustomMeshProps & { rotationMatrix: THREE.Matrix4 }) {
   const meshRef = useRef<THREE.Mesh>();
   const { clock } = useThree();
+  const { setSelectedEntryIndex } = useAppContext();
 
   // Create material instance and set shaders
   const material = new CustomShaderMaterial();
@@ -53,7 +55,16 @@ export function CustomMesh({ geometry, vertexShader, fragmentShader, center, rot
 
   return (
     <group position={center}>
-      <mesh ref={meshRef} scale={0.5} geometry={geometry} material={material} />
+      <mesh
+        ref={meshRef}
+        scale={0.5}
+        geometry={geometry}
+        material={material}
+        onClick={(event) => {
+          event.stopPropagation();
+          setSelectedEntryIndex(index);
+        }}
+      />
       <axesHelper args={[1]} />
     </group>
   );
@@ -122,6 +133,8 @@ export default function ObjectColorSolid() {
     sliceSwitch,
     setSliceSwitch,
     setPositionY,
+    setWavelengthsArray,
+    setConeResponsesArray,
   } = useAppContext();
 
   // Add a default entry on component mount
@@ -176,7 +189,11 @@ export default function ObjectColorSolid() {
         return response.json();
       })
       .then(dataArray => {
-        const newOcsDataArray = dataArray.map((data: any, index: number) => {
+        const newOcsDataArray = [];
+        const newWavelengthsArray = [];
+        const newConeResponsesArray = [];
+
+        dataArray.forEach((data: any, index: number) => {
           // Create geometry from fetched data
           const geometry = new THREE.BufferGeometry();
           geometry.setAttribute('position', new THREE.Float32BufferAttribute(data.vertices.flat(), 3));
@@ -184,15 +201,25 @@ export default function ObjectColorSolid() {
           geometry.setAttribute('color', new THREE.Float32BufferAttribute(data.colors.flat(), 3));
           geometry.setIndex(data.indices.flat());
 
-          return {
+          newOcsDataArray.push({
             geometry,
             vertexShader: data.vertexShader,
             fragmentShader: data.fragmentShader,
-          } as OcsData;
+          } as OcsData);
+
+          // Store wavelengths and cone responses per entry
+          newWavelengthsArray.push(data.wavelengths.flat());
+          newConeResponsesArray.push({
+            coneResponse1: data.s_response.flat(),
+            coneResponse2: data.m_response.flat(),
+            coneResponse3: data.l_response.flat(),
+            coneResponse4: data.q_response.flat(),
+          });
         });
 
         setOcsDataArray(newOcsDataArray);
-
+        setWavelengthsArray(newWavelengthsArray);
+        setConeResponsesArray(newConeResponsesArray);
         // Update wavelengths and cone responses if needed
         // Assuming dataArray[0] has the required data
         setWavelengths(dataArray[0].wavelengths.flat());
@@ -205,7 +232,7 @@ export default function ObjectColorSolid() {
       })
       .catch(error => console.error('Error fetching data:', error))
       .finally(() => setFetchTrigger(false));
-  }, [fetchTrigger, entries, setConeResponses, setWavelengths, setFetchTrigger]);
+  }, [fetchTrigger, entries, setConeResponses, setWavelengths, setFetchTrigger, setWavelengthsArray, setConeResponsesArray]);
 
   // Handle drag to rotate geometries
   const bind = useDrag(({ movement: [mx, my], memo = rotationMatrix, dragging }) => {
@@ -249,6 +276,7 @@ export default function ObjectColorSolid() {
         {ocsDataArray.map((ocsData, index) => (
           <CustomMesh
             key={index}
+            index={index}
             geometry={ocsData.geometry}
             vertexShader={ocsData.vertexShader}
             fragmentShader={ocsData.fragmentShader}

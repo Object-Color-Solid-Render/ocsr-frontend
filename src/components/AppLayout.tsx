@@ -139,6 +139,12 @@ type AppContextType = {
   setFetchTrigger: Dispatch<SetStateAction<boolean>>;
   entries: EntryParams[];
   setEntries: Dispatch<SetStateAction<EntryParams[]>>;
+  selectedEntryIndex: number | null;
+  setSelectedEntryIndex: Dispatch<SetStateAction<number | null>>;
+  wavelengthsArray: number[][];
+  setWavelengthsArray: Dispatch<SetStateAction<number[][]>>;
+  coneResponsesArray: any[];
+  setConeResponsesArray: Dispatch<SetStateAction<any[]>>;
 };
 
 // Create context
@@ -196,6 +202,9 @@ export const AppContextProvider = ({ children }: { children: ReactNode }) => {
   const [positionY, setPositionY] = useState(0);
   const [fetchTrigger, setFetchTrigger] = useState(false);
   const [entries, setEntries] = useState<EntryParams[]>([]);
+  const [selectedEntryIndex, setSelectedEntryIndex] = useState<number | null>(null);
+  const [wavelengthsArray, setWavelengthsArray] = useState<number[][]>([]);
+  const [coneResponsesArray, setConeResponsesArray] = useState<any[]>([]);
 
   return (
     <AppContext.Provider
@@ -238,6 +247,12 @@ export const AppContextProvider = ({ children }: { children: ReactNode }) => {
         setFetchTrigger,
         entries,
         setEntries,
+        selectedEntryIndex,
+        setSelectedEntryIndex,
+        wavelengthsArray,
+        setWavelengthsArray,
+        coneResponsesArray,
+        setConeResponsesArray,
       }}
     >
       {children}
