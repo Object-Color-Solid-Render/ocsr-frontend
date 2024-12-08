@@ -284,8 +284,6 @@ export default function ObjectColorSolid() {
             rotationMatrix={rotationMatrix}
           />
         ))}
-        {/* Remove OrbitControls to prevent camera rotation */}
-        <axesHelper args={[5]} />
       </Canvas>
     </div>
   );
