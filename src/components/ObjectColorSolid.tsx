@@ -252,7 +252,7 @@ export default function ObjectColorSolid() {
         orthographic
         camera={{
           position: [0, 0, 3.0],
-          zoom: 1,
+          zoom: 0.5,
           near: 0.001,
           far: 10000,
           top: 8,
