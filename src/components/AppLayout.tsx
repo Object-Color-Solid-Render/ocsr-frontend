@@ -6,6 +6,7 @@ import {
   Title,
   ActionIcon,
   Drawer, // Added import
+  Button, // Added import
 } from '@mantine/core';
 import ObjectColorSolid from './ObjectColorSolid';
 import SliceDisplay from './SliceDisplay/SliceDisplay';
@@ -13,6 +14,7 @@ import GraphDisplay from './GraphDisplay/GraphDisplay';
 import SpectraInputs from './GraphDisplay/SpectraInputs';
 import { EntryParams } from './GraphDisplay/SpectraInputs';
 import { IconMenu2 } from '@tabler/icons-react'; // Added import
+import { Link } from 'react-router-dom'; // Added import
 
 import {
   createContext,
@@ -318,12 +320,31 @@ export default function AppLayout() {
   return (
     <AppShell header={{ height: 50 }} padding="sm">
       {/* Header with title */}
-      <AppShell.Header style={{ backgroundColor: theme.colors.myColor[7], color: "white", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-        <img src={ocstudioLogo} alt="OCStudio Logo" style={{ marginLeft: 'lg', height: '40px' }} />
-        {/* Icon button to open the drawer */}
-        <ActionIcon variant="outline" onClick={() => setDrawerOpened(true)}>
-          <IconMenu2 size={18} />
-        </ActionIcon>
+      <AppShell.Header style={{ backgroundColor: '#F5F5F5', color: "black", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+        <img src={ocstudioLogo} alt="OCStudio Logo" style={{ marginLeft: '30px', height: '40px' }} />
+        <div>
+          <Button
+            component="a"
+            href="https://github.com/Object-Color-Solid-Render"
+            target="_blank"
+            rel="noopener noreferrer"
+            variant="subtle"
+            style={{ marginRight: '10px' }}
+          >
+            GitHub
+          </Button>
+          <Button
+            component={Link}
+            to="/about"
+            variant="subtle"
+            style={{ marginRight: '10px' }}
+          >
+            About Us
+          </Button>
+          <ActionIcon variant="subtle" onClick={() => setDrawerOpened(true)}>
+            <IconMenu2 size={18} />
+          </ActionIcon>
+        </div>
       </AppShell.Header>
 
       {/* Drawer overlay for entry edits */}

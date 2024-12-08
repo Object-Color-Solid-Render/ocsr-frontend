@@ -8,9 +8,13 @@ import {
   Text,
   Select,
   Drawer,
+  Collapse,
+  Card,
+  Title,
 } from '@mantine/core';
 import { useState, useEffect } from 'react';
 import { useAppContext } from '../AppLayout';
+import { IconEdit, IconTrash, IconChevronUp, IconChevronDown } from '@tabler/icons-react';
 
 // Type definitions
 export type EntryParams = {
@@ -37,6 +41,9 @@ export default function SpectraInputs() {
   const [dropdownOptions, setDropdownOptions] = useState<string[]>([]);
   const { entries, setEntries } = useAppContext();
   const { spectralDB, submitSwitch, setSubmitSwitch, setFetchTrigger } = useAppContext();
+  const [collapsedEntries, setCollapsedEntries] = useState(entries.map(() => false));
+  const [entryNames, setEntryNames] = useState(entries.map(() => 'New OCS'));
+  const [isEditingName, setIsEditingName] = useState(entries.map(() => false));
 
   // Update dropdown options when spectralDB changes
   useEffect(() => {
@@ -69,6 +76,7 @@ export default function SpectraInputs() {
         selectedSpecies: null,
       };
       setEntries([defaultEntry]);
+      setEntryNames(['New OCS']);
     }
   }, [entries, setEntries]);
 
@@ -133,6 +141,42 @@ export default function SpectraInputs() {
       }
       return newEntries;
     });
+
+    // Update entry name with species name
+    if (value) {
+      setEntryNames(prev => {
+        const newNames = [...prev];
+        newNames[index] = value;
+        return newNames;
+      });
+    }
+  };
+
+  // Handle name change
+  const handleNameChange = (event: React.ChangeEvent<HTMLInputElement>, index: number) => {
+    const { value } = event.target;
+    setEntryNames(prev => {
+      const newNames = [...prev];
+      newNames[index] = value;
+      return newNames;
+    });
+  };
+
+  // Toggle name editing
+  const toggleEditingName = (index: number) => {
+    setIsEditingName(prev => {
+      const newEditing = [...prev];
+      newEditing[index] = !newEditing[index];
+      return newEditing;
+    });
+  };
+
+  // Delete an entry
+  const handleDeleteEntry = (index: number) => {
+    setEntries(prev => prev.filter((_, i) => i !== index));
+    setCollapsedEntries(prev => prev.filter((_, i) => i !== index));
+    setEntryNames(prev => prev.filter((_, i) => i !== index));
+    setIsEditingName(prev => prev.filter((_, i) => i !== index));
   };
 
   // Handle form submission
@@ -151,7 +195,7 @@ export default function SpectraInputs() {
         <Button type="submit">Submit</Button>
         <Button
           variant="default"
-          onClick={() =>
+          onClick={() => {
             setEntries([
               ...entries,
               {
@@ -173,8 +217,9 @@ export default function SpectraInputs() {
                 },
                 selectedSpecies: null,
               },
-            ])
-          }
+            ]);
+            setEntryNames([...entryNames, 'New OCS']);
+          }}
         >
           Add Entry
         </Button>
@@ -183,93 +228,130 @@ export default function SpectraInputs() {
       {/* Entries stack */}
       <Stack spacing="xl">
         {entries.map((entry, index) => (
-          <div key={index} style={{ borderBottom: '1px solid #e9ecef', paddingBottom: '16px' }}>
-            {/* Species Selection */}
-            <Text weight={500} size="md" mb="sm">
-              Select Species
-            </Text>
-            <Select
-              placeholder="Select a species"
-              data={dropdownOptions}
-              value={entry.selectedSpecies}
-              onChange={value => handleSpeciesChange(value, index)}
-              searchable
-              nothingFound="No species found"
-              dropdownPosition="bottom"
-              mb="md"
-            />
-
-            {/* Wavelength Bounds Inputs */}
-            <Group grow mb="md">
-              <TextInput
-                label="Min Wavelength"
-                name="min"
-                type="number"
-                value={entry.wavelengthBounds.min}
-                onChange={e => handleBoundsInputChange(e, index)}
-                required
-              />
-              <TextInput
-                label="Max Wavelength"
-                name="max"
-                type="number"
-                value={entry.wavelengthBounds.max}
-                onChange={e => handleBoundsInputChange(e, index)}
-                required
-              />
+          <Card key={index} padding="lg" style={{ backgroundColor: '#f5f5f7' }}>
+            <Group position="apart" align="center">
+              {isEditingName[index] ? (
+                <TextInput
+                  value={entryNames[index]}
+                  onChange={e => handleNameChange(e, index)}
+                  onBlur={() => toggleEditingName(index)}
+                  styles={{ input: { fontSize: '1.25rem', fontWeight: 500 } }}
+                />
+              ) : (
+                <Title order={4} style={{ color: '#1d1d1f' }}>
+                  {entryNames[index]}
+                </Title>
+              )}
+              <Group spacing="xs" style={{ marginLeft: 'auto' }}>
+                <Button variant="subtle" compact onClick={() => toggleEditingName(index)}>
+                  <IconEdit size={16} />
+                </Button>
+                <Button variant="subtle" compact onClick={() => handleDeleteEntry(index)}>
+                  <IconTrash size={16} />
+                </Button>
+                <Button
+                  variant="subtle"
+                  compact
+                  onClick={() =>
+                    setCollapsedEntries(prev => {
+                      const newCollapsed = [...prev];
+                      newCollapsed[index] = !newCollapsed[index];
+                      return newCollapsed;
+                    })
+                  }
+                >
+                  {collapsedEntries[index] ? <IconChevronDown size={16} /> : <IconChevronUp size={16} />}
+                </Button>
+              </Group>
             </Group>
+            <Collapse in={!collapsedEntries[index]}>
+              {/* Species Selection */}
+              <Text weight={500} size="md" mb="sm">
+                Select Species
+              </Text>
+              <Select
+                placeholder="Select a species"
+                data={dropdownOptions}
+                value={entry.selectedSpecies}
+                onChange={value => handleSpeciesChange(value, index)}
+                searchable
+                nothingFound="No species found"
+                dropdownPosition="bottom"
+                mb="md"
+              />
 
-            {/* Spectral Peaks and Active Cones */}
-            <Text weight={500} size="md" mb="sm">
-              Spectral Peaks (nm)
-            </Text>
-            {(['isCone1Active', 'isCone2Active', 'isCone3Active', 'isCone4Active'] as const).map(
-              (coneKey, coneIndex) => (
-                <Group key={coneKey} position="apart" mb="sm">
-                  <Text size="sm" style={{ minWidth: '60px' }}>
-                    {`Cone ${coneIndex + 1}`}
-                  </Text>
-                  <Slider
-                    value={
-                      entry.spectralPeaks[
-                        `peakWavelength${coneIndex + 1}` as keyof EntryParams['spectralPeaks']
-                      ]
-                    }
-                    onChange={value =>
-                      handleSpectralPeaksChange(
-                        `peakWavelength${coneIndex + 1}` as keyof EntryParams['spectralPeaks'],
-                        value,
-                        index
-                      )
-                    }
-                    min={380}
-                    max={700}
-                    step={1}
-                    disabled={!entry.activeCones[coneKey]}
-                    style={{ flexGrow: 1 }}
-                  />
-                  <Checkbox
-                    checked={entry.activeCones[coneKey]}
-                    onChange={() => handleActiveConesChange(coneKey, index)}
-                  />
-                </Group>
-              )
-            )}
+              {/* Wavelength Bounds Inputs */}
+              <Group grow mb="md">
+                <TextInput
+                  label="Min Wavelength"
+                  name="min"
+                  type="number"
+                  value={entry.wavelengthBounds.min}
+                  onChange={e => handleBoundsInputChange(e, index)}
+                  required
+                />
+                <TextInput
+                  label="Max Wavelength"
+                  name="max"
+                  type="number"
+                  value={entry.wavelengthBounds.max}
+                  onChange={e => handleBoundsInputChange(e, index)}
+                  required
+                />
+              </Group>
 
-            {/* Max Basis Checkbox */}
-            <Checkbox
-              label="Max Basis"
-              checked={entry.isMaxBasis}
-              onChange={event =>
-                setEntries(prev => {
-                  const newEntries = [...prev];
-                  newEntries[index].isMaxBasis = event.currentTarget.checked;
-                  return newEntries;
-                })
-              }
-              mb="sm"
-            />
-          </div>
+              {/* Spectral Peaks and Active Cones */}
+              <Text weight={500} size="md" mb="sm">
+                Spectral Peaks (nm)
+              </Text>
+              {(['isCone1Active', 'isCone2Active', 'isCone3Active', 'isCone4Active'] as const).map(
+                (coneKey, coneIndex) => (
+                  <Group key={coneKey} position="apart" mb="sm">
+                    <Text size="sm" style={{ minWidth: '60px' }}>
+                      {`Cone ${coneIndex + 1}`}
+                    </Text>
+                    <Slider
+                      value={
+                        entry.spectralPeaks[
+                          `peakWavelength${coneIndex + 1}` as keyof EntryParams['spectralPeaks']
+                        ]
+                      }
+                      onChange={value =>
+                        handleSpectralPeaksChange(
+                          `peakWavelength${coneIndex + 1}` as keyof EntryParams['spectralPeaks'],
+                          value,
+                          index
+                        )
+                      }
+                      min={380}
+                      max={700}
+                      step={1}
+                      disabled={!entry.activeCones[coneKey]}
+                      style={{ flexGrow: 1 }}
+                    />
+                    <Checkbox
+                      checked={entry.activeCones[coneKey]}
+                      onChange={() => handleActiveConesChange(coneKey, index)}
+                    />
+                  </Group>
+                )
+              )}
+
+              {/* Max Basis Checkbox */}
+              <Checkbox
+                label="Max Basis"
+                checked={entry.isMaxBasis}
+                onChange={event =>
+                  setEntries(prev => {
+                    const newEntries = [...prev];
+                    newEntries[index].isMaxBasis = event.currentTarget.checked;
+                    return newEntries;
+                  })
+                }
+                mb="sm"
+              />
+            </Collapse>
+          </Card>
         ))}
       </Stack>
     </form>

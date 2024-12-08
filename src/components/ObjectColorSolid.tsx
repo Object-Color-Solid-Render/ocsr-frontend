@@ -3,7 +3,7 @@ import { Canvas, useFrame, extend, useThree } from '@react-three/fiber';
 import { OrbitControls, shaderMaterial } from '@react-three/drei';
 import * as THREE from 'three';
 import { useAppContext } from './AppLayout';
-import { Button } from '@mantine/core';
+import { Button, Loader, Modal } from '@mantine/core'; // Import Loader and Modal components from Mantine
 import { EntryParams } from './SpectraInputs'; // Ensure EntryParams is imported
 import { useDrag } from '@use-gesture/react';
 
@@ -174,6 +174,9 @@ export default function ObjectColorSolid() {
   const [ocsDataArray, setOcsDataArray] = useState<OcsData[]>([]); // Changed to array to handle multiple geometries
   const [rotationMatrix, setRotationMatrix] = useState(new THREE.Matrix4());
   const [dragging, setDragging] = useState(false);
+  const [loading, setLoading] = useState(false); // State to manage loading
+  const [error, setError] = useState<string | null>(null); // State to manage error messages
+  const [errorDetails, setErrorDetails] = useState<string | null>(null); // State to manage detailed error messages
   const {
     fetchTrigger,
     setFetchTrigger,
@@ -218,6 +221,10 @@ export default function ObjectColorSolid() {
   useEffect(() => {
     if (entries.length === 0 || !fetchTrigger) return;
 
+    setLoading(true); // Set loading to true when fetching starts
+    setError(null); // Reset error state
+    setErrorDetails(null); // Reset detailed error state
+
     const params = new URLSearchParams();
 
     entries.forEach((entry, index) => {
@@ -238,7 +245,7 @@ export default function ObjectColorSolid() {
 
     fetch(`http://localhost:5050/get_ocs_data?${params.toString()}`)
       .then(response => {
-        if (!response.ok) throw new Error('Failed to fetch data');
+        if (!response.ok) throw new Error("GG");
         return response.json();
       })
       .then(dataArray => {
@@ -283,8 +290,15 @@ export default function ObjectColorSolid() {
           coneResponse4: dataArray[0].q_response.flat(),
         });
       })
-      .catch(error => console.error('Error fetching data:', error))
-      .finally(() => setFetchTrigger(false));
+      .catch(error => {
+        console.error('Error fetching data:', error);
+        setError('Failed to fetch data from the server. Please try again later.');
+        setErrorDetails(error.message); // Set detailed error message
+      })
+      .finally(() => {
+        setFetchTrigger(false);
+        setLoading(false); // Set loading to false when fetching ends
+      });
   }, [fetchTrigger, entries, setConeResponses, setWavelengths, setFetchTrigger, setWavelengthsArray, setConeResponsesArray]);
 
   // Handle drag to rotate geometries
@@ -307,7 +321,34 @@ export default function ObjectColorSolid() {
 
   return (
     <div {...bind()} style={{ width: '100%', height: '100%', position: 'relative' }}>
-      {/* Button to update the entry parameters */}
+      {loading && (
+        <div style={{
+          position: 'absolute',
+          top: '50%',
+          left: '50%',
+          transform: 'translate(-50%, -50%)',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          backgroundColor: 'rgba(255, 255, 255, 0.9)',
+          borderRadius: '12px',
+          padding: '16px',
+          boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+          zIndex: 1000 // Ensure the loading UI is on top
+        }}>
+          <Loader size="lg" color="gray" />
+          <p style={{ marginTop: '8px', color: '#555', fontSize: '14px' }}>Loading...</p>
+        </div>
+      )}
+      <Modal
+        opened={!!error}
+        onClose={() => setError(null)}
+        title="Error"
+      >
+        <p>{error}</p>
+        {errorDetails && <pre>{errorDetails}</pre>}
+      </Modal>
       {/* Canvas to render the 3D scene */}
       <Canvas
         orthographic
