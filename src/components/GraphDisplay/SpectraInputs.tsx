@@ -261,7 +261,7 @@ export default function SpectraInputs() {
   };
 
   return (
-    <form onSubmit={handleSubmit}>
+    <form onSubmit={handleSubmit} style={{ height: '100%' }}>
       <Group position="apart" mb="md">
         <Button type="submit">Submit</Button>
         <Button
@@ -296,43 +296,45 @@ export default function SpectraInputs() {
         </Button>
       </Group>
 
-      <Stack spacing="xl">
-        {entries.map((entry, index) => (
-          <SpectraEntry
-            key={index}
-            entry={entry}
-            index={index}
-            entryName={entryNames[index]}
-            isEditing={isEditingName[index]}
-            isCollapsed={collapsedEntries[index]}
-            dropdownOptions={dropdownOptions}
-            spectralDB={spectralDB}
-            onUpdate={handleUpdateEntry}
-            onNameChange={(name, idx) => {
-              setEntryNames(prev => {
-                const newNames = [...prev];
-                newNames[idx] = name;
-                return newNames;
-              });
-            }}
-            onToggleEdit={(idx) => {
-              setIsEditingName(prev => {
-                const newEditing = [...prev];
-                newEditing[idx] = !newEditing[idx];
-                return newEditing;
-              });
-            }}
-            onDelete={handleDeleteEntry}
-            onToggleCollapse={(idx) => {
-              setCollapsedEntries(prev => {
-                const newCollapsed = [...prev];
-                newCollapsed[idx] = !newCollapsed[idx];
-                return newCollapsed;
-              });
-            }}
-          />
-        ))}
-      </Stack>
+      <div style={{ height: '100%', overflow: 'auto' }}>
+        <Stack spacing="xl">
+          {entries.map((entry, index) => (
+            <SpectraEntry
+              key={index}
+              entry={entry}
+              index={index}
+              entryName={entryNames[index]}
+              isEditing={isEditingName[index]}
+              isCollapsed={collapsedEntries[index]}
+              dropdownOptions={dropdownOptions}
+              spectralDB={spectralDB}
+              onUpdate={handleUpdateEntry}
+              onNameChange={(name, idx) => {
+                setEntryNames(prev => {
+                  const newNames = [...prev];
+                  newNames[idx] = name;
+                  return newNames;
+                });
+              }}
+              onToggleEdit={(idx) => {
+                setIsEditingName(prev => {
+                  const newEditing = [...prev];
+                  newEditing[idx] = !newEditing[idx];
+                  return newEditing;
+                });
+              }}
+              onDelete={handleDeleteEntry}
+              onToggleCollapse={(idx) => {
+                setCollapsedEntries(prev => {
+                  const newCollapsed = [...prev];
+                  newCollapsed[idx] = !newCollapsed[idx];
+                  return newCollapsed;
+                });
+              }}
+            />
+          ))}
+        </Stack>
+      </div>
     </form>
   );
 }

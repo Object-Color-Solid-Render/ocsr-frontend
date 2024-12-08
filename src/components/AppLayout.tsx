@@ -217,7 +217,7 @@ export default function AppLayout() {
       padding="sm"
       layout="alt"
       aside={{  // Change from navbar to aside
-        width: 300,
+        width: window.innerWidth * 0.25,
         breakpoint: 'sm',
         collapsed: { mobile: !sidebarOpened, desktop: !sidebarOpened },
       }}
@@ -255,7 +255,7 @@ export default function AppLayout() {
       </AppShell.Header>
 
       {/* Change Navbar to Aside */}
-      <AppShell.Aside p="md">
+      <AppShell.Aside p="md" style={{ height: '100%' }}>
         <SpectraInputs />
       </AppShell.Aside>
 
