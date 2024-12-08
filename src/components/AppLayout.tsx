@@ -64,6 +64,13 @@ type SpectralDBEntry = {
   note: string;
 };
 
+type Plane = {
+  a: number;
+  b: number;
+  c: number;
+  d: number;
+}
+
 type SpectralDB = Record<string, SpectralDBEntry>;
 
 // Type definitions for context values
@@ -136,8 +143,8 @@ type AppContextType = {
   setSliceVisible: Dispatch<SetStateAction<boolean>>;
   sliceSwitch: number;
   setSliceSwitch: Dispatch<SetStateAction<number>>;
-  positionY: number;
-  setPositionY: Dispatch<SetStateAction<number>>;
+  slicePlane: Plane;
+  setSlicePlane: Dispatch<SetStateAction<Plane>>;  // It'll only have a, b, c changed based on rotation (d is fixed per OCS)  
   fetchTrigger: boolean;
   setFetchTrigger: Dispatch<SetStateAction<boolean>>;
   entries: EntryParams[];
@@ -202,7 +209,7 @@ export const AppContextProvider = ({ children }: { children: ReactNode }) => {
   });
   const [sliceVisible, setSliceVisible] = useState(false);
   const [sliceSwitch, setSliceSwitch] = useState(0);
-  const [positionY, setPositionY] = useState(0);
+  const [slicePlane, setSlicePlane] = useState({a: 0, b: 0, c: 0, d: 0});
   const [fetchTrigger, setFetchTrigger] = useState(false);
   const [entries, setEntries] = useState<EntryParams[]>([]);
   const [selectedEntryIndex, setSelectedEntryIndex] = useState<number | null>(null);
@@ -244,8 +251,8 @@ export const AppContextProvider = ({ children }: { children: ReactNode }) => {
         setSliceVisible,
         sliceSwitch,
         setSliceSwitch,
-        positionY,
-        setPositionY,
+        slicePlane,
+        setSlicePlane,
         fetchTrigger,
         setFetchTrigger,
         entries,

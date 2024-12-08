@@ -45,14 +45,6 @@ export function CustomMesh({ geometry, vertexShader, fragmentShader, center, rot
       meshRef.current.updateMatrixWorld(true);
     }
   }, [rotationMatrix]);
-
-  useFrame(() => {
-    if (meshRef.current) {
-      // Update uniform color over time
-      material.uniforms.col.value.setHSL(clock.getElapsedTime() % 1, 1, 0.5);
-    }
-  });
-
   return (
     <group position={center}>
       <mesh
@@ -77,21 +69,83 @@ export type OcsData = {
   fragmentShader: string;
 };
 
-// Component to implement the moving Y slice
-function MovingYSlice() {
-  const sliceRef = useRef<THREE.Mesh>();
-  const { positionY } = useAppContext();
+export type EntryParams = {
+  wavelengthBounds: { min: number; max: number };
+  omitBetaBand: boolean;
+  isMaxBasis: boolean;
+  wavelengthSampleResolution: number;
+  spectralPeaks: {
+    peakWavelength1: number;
+    peakWavelength2: number;
+    peakWavelength3: number;
+    peakWavelength4: number;
+  };
+  activeCones: {
+    isCone1Active: boolean;
+    isCone2Active: boolean;
+    isCone3Active: boolean;
+    isCone4Active: boolean;
+  };
+};
+
+function MovingPlane() {
+  const planeRef = useRef();
+  const { viewport } = useThree(); // Get the viewport dimensions
+  const normalRef = useRef(new THREE.Vector3(-1, 1, 0).normalize()); // Initial normal vector
+  const { slicePlane, setSlicePlane } = useAppContext()
+
+  // Mouse position (normalized to -1 to 1 range)
+  const mousePosition = useRef({ x: 0, y: 0 });
+
+  // Listen for mouse movement and store normalized coordinates
+  const handleMouseMove = (event) => {
+    mousePosition.current.x = (event.clientX / window.innerWidth) * 2 - 1; // Normalize X
+    mousePosition.current.y = -(event.clientY / window.innerHeight) * 2 + 1; // Normalize Y
+  };
+
+  React.useEffect(() => {
+    window.addEventListener("mousemove", handleMouseMove);
+    return () => window.removeEventListener("mousemove", handleMouseMove);
+  }, []);
 
   useFrame(() => {
-    if (sliceRef.current) {
-      sliceRef.current.position.y = positionY;
+    if (planeRef.current) {
+      const mouse = mousePosition.current;
+
+      // Calculate the new rotation axis and angle based on mouse movement
+      const rotationAxis = new THREE.Vector3(1, 1, 1).normalize(); // Axis of rotation
+      const angle = mouse.x * Math.PI * 2; // Map mouse X to rotation angle (adjust factor for sensitivity)
+
+      // Create a quaternion for rotation around the axis
+      const rotationQuaternion = new THREE.Quaternion();
+      rotationQuaternion.setFromAxisAngle(rotationAxis, angle);
+
+      // Rotate the normal vector
+      const rotatedNormal = normalRef.current.clone().applyQuaternion(rotationQuaternion).normalize();
+
+      // Align the plane's normal to the rotated normal
+      const quaternion = new THREE.Quaternion();
+      quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, 1), rotatedNormal);
+      setSlicePlane({
+        a: rotatedNormal.x,
+        b: rotatedNormal.y,
+        c: rotatedNormal.z,
+        d: slicePlane.d
+      })
+
+      planeRef.current.quaternion.copy(quaternion);
     }
   });
 
   return (
-    <mesh ref={sliceRef} position={[0, positionY, 0]} rotation={[-Math.PI / 2, 0, 0]}>
-      <planeGeometry args={[0.5, 0.5]} />
-      <meshBasicMaterial color="black" wireframe={true} />
+    <mesh ref={planeRef} position={[0, 0, 0]}>
+      <planeGeometry args={[1.7, 1.7]} />
+      <meshStandardMaterial
+        color="gray"
+        transparent={true}
+        opacity={0.5}
+        side={THREE.DoubleSide} // Render both sides
+      />
     </mesh>
   );
 }
@@ -132,7 +186,6 @@ export default function ObjectColorSolid() {
     setSliceVisible,
     sliceSwitch,
     setSliceSwitch,
-    setPositionY,
     setWavelengthsArray,
     setConeResponsesArray,
   } = useAppContext();
@@ -268,11 +321,17 @@ export default function ObjectColorSolid() {
           left: window.innerWidth / window.innerHeight * -8,
           right: window.innerWidth / window.innerHeight * 8,
         }}
-        onPointerDown={() => setDragging(true)}
+        onPointerDown={() => {
+          if (sliceVisible) {
+            setSliceVisible(false)
+            setSliceSwitch(sliceSwitch + 1) // Trigger update in the slice display
+          }
+          setDragging(true)
+        }}
         onPointerUp={() => setDragging(false)}
       >
         <UpdateCamera />
-        {sliceDimension === 2 && sliceVisible && <MovingYSlice />}
+        {sliceDimension === 2 && sliceVisible && <MovingPlane></MovingPlane>}
         {ocsDataArray.map((ocsData, index) => (
           <CustomMesh
             key={index}
