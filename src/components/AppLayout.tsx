@@ -61,6 +61,13 @@ type SpectralDBEntry = {
   note: string;
 };
 
+type Plane = {
+  a: number;
+  b: number;
+  c: number;
+  d: number;
+}
+
 type SpectralDB = Record<string, SpectralDBEntry>;
 
 // all state/context members
@@ -148,8 +155,8 @@ type AppContextType = {
   sliceSwitch: number;
   setSliceSwitch: Dispatch<SetStateAction<number>>;
 
-  positionY: number;
-  setPositionY: Dispatch<SetStateAction<number>>;
+  slicePlane: Plane;
+  setSlicePlane: Dispatch<SetStateAction<Plane>>;  // It'll only have a, b, c changed based on rotation (d is fixed per OCS)
 };
 
 export const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -213,7 +220,7 @@ export const AppContextProvider = ({ children }: { children: ReactNode }) => {
   });
   const [sliceVisible, setSliceVisible] = useState(false);
   const [sliceSwitch, setSliceSwitch] = useState(0);
-  const [positionY, setPositionY] = useState(0);
+  const [slicePlane, setSlicePlane] = useState({a: 0, b: 0, c: 0, d: 0});
 
   return (
     <AppContext.Provider
@@ -257,8 +264,8 @@ export const AppContextProvider = ({ children }: { children: ReactNode }) => {
         setSliceVisible,
         sliceSwitch,
         setSliceSwitch,
-        positionY,
-        setPositionY,
+        slicePlane,
+        setSlicePlane,
       }}
     >
       {children}

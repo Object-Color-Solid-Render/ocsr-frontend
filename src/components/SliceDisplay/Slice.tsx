@@ -17,16 +17,18 @@ const boxStyle = {
 export default function Slice() {
     const [open, setOpen] = useState(false);
     const [sliceData, setSliceData] = useState<OcsData>({geometry: new THREE.BufferGeometry(), vertexShader: '', fragmentShader: ''});
-    const { positionY, sliceSwitch } = useAppContext()
+    const { slicePlane, sliceSwitch } = useAppContext()
 
     useEffect(() => {
         // Skip the first initial render 
         console.log(sliceSwitch)
         if (sliceSwitch > 0) { 
             const params = new URLSearchParams({
-                vertices: [].toString(),
-                colors: [].toString(),
-                y: positionY.toString(),
+                a: slicePlane.a.toString(),
+                b: slicePlane.b.toString(),
+                c: slicePlane.c.toString(),
+                d: slicePlane.d.toString(),
+
             });
             console.log(params.toString())
             
@@ -40,9 +42,11 @@ export default function Slice() {
                     geometry.setAttribute('position', new THREE.Float32BufferAttribute(data.vertices.flat(), 3));
                     // geometry.setAttribute('normal', new THREE.Float32BufferAttribute(data.normals.flat(), 3));
                     geometry.setAttribute('color', new THREE.Float32BufferAttribute(data.colors.flat(), 3));
-                    // geometry.setIndex(data.indices.flat());
+                    geometry.setIndex(data.indices.flat());
                     geometry.translate(-0.5, -0.5, -0.5);
                     
+                    console.log(geometry.getAttribute('position'))
+                    console.log(geometry.index)
                     setSliceData({
                         geometry,
                         vertexShader: data.vertexShader,
@@ -59,11 +63,16 @@ export default function Slice() {
             <DropdownContent open={open} width={300}>
                 <div style={boxStyle}> {/* Needed to wrap around the canvas to provide a specified width/height */}
                     { sliceData && (
-                        <Canvas>
+                        /*TODO: Fix the lookat, or center the mesh...*/
+                        <Canvas camera={{ position: [0, 0, 1] }}>
+                            {/* <mesh geometry={sliceData.geometry}>
+                                <meshBasicMaterial color="green" wireframe={false} />
+                            </mesh> */}
                             <CustomMesh
                                 geometry={sliceData.geometry}
                                 vertexShader={sliceData.vertexShader}
                                 fragmentShader={sliceData.fragmentShader}
+                                scale={5}
                             /> 
                             {/* <mesh>
                                 <boxGeometry></boxGeometry>

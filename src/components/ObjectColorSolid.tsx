@@ -14,7 +14,7 @@ const CustomShaderMaterial = shaderMaterial(
 
 extend({ CustomShaderMaterial });
 
-export function CustomMesh({ geometry, vertexShader, fragmentShader, center }) {
+export function CustomMesh({ geometry, vertexShader, fragmentShader, center, scale=1}) {
   const meshRef = useRef();
   const { clock } = useThree();
 
@@ -25,7 +25,7 @@ export function CustomMesh({ geometry, vertexShader, fragmentShader, center }) {
   useFrame(() => {
     if (meshRef.current) {
       material.uniforms.col.value.setHSL(clock.getElapsedTime() % 1, 1, 0.5);
-      const point = new THREE.Vector3(...center)
+      // const point = new THREE.Vector3(...center)
       // if (meshRef.current) {
       //   //meshRef.current.position.sub(point);
       //   // Add slow rotation
@@ -37,7 +37,7 @@ export function CustomMesh({ geometry, vertexShader, fragmentShader, center }) {
     }
   });
 
-  return <mesh ref={meshRef} scale={0.5} geometry={geometry} material={material} />;
+  return <mesh ref={meshRef} scale= {scale} geometry={geometry} material={material} />;
 }
 
 export type OcsData = {
@@ -47,20 +47,82 @@ export type OcsData = {
 }
 
 // Implement the moving slice
-function MovingYSlice() {
-  const sliceRef = useRef()
-  const { positionY } = useAppContext()
+// function MovingYSlice() {
+//   const sliceRef = useRef()
+//   const { positionY } = useAppContext()
+
+//   useFrame(() => {
+//     if (sliceRef) sliceRef.current.position.y = positionY 
+//   })
+
+//   return (
+//     <mesh ref={sliceRef} position={[0, positionY, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+//       <planeGeometry args={[1, 1]} />
+//       <meshBasicMaterial color="black" wireframe={true} />
+//     </mesh>
+//   )
+// }
+
+function MovingPlane() {
+  const planeRef = useRef();
+  const { viewport } = useThree(); // Get the viewport dimensions
+  const normalRef = useRef(new THREE.Vector3(-1, 1, 0).normalize()); // Initial normal vector
+  const { slicePlane, setSlicePlane } = useAppContext()
+
+  // Mouse position (normalized to -1 to 1 range)
+  const mousePosition = useRef({ x: 0, y: 0 });
+
+  // Listen for mouse movement and store normalized coordinates
+  const handleMouseMove = (event) => {
+    mousePosition.current.x = (event.clientX / window.innerWidth) * 2 - 1; // Normalize X
+    mousePosition.current.y = -(event.clientY / window.innerHeight) * 2 + 1; // Normalize Y
+  };
+
+  React.useEffect(() => {
+    window.addEventListener("mousemove", handleMouseMove);
+    return () => window.removeEventListener("mousemove", handleMouseMove);
+  }, []);
 
   useFrame(() => {
-    if (sliceRef) sliceRef.current.position.y = positionY 
-  })
+    if (planeRef.current) {
+      const mouse = mousePosition.current;
+
+      // Calculate the new rotation axis and angle based on mouse movement
+      const rotationAxis = new THREE.Vector3(1, 1, 1).normalize(); // Axis of rotation
+      const angle = mouse.x * Math.PI * 2; // Map mouse X to rotation angle (adjust factor for sensitivity)
+
+      // Create a quaternion for rotation around the axis
+      const rotationQuaternion = new THREE.Quaternion();
+      rotationQuaternion.setFromAxisAngle(rotationAxis, angle);
+
+      // Rotate the normal vector
+      const rotatedNormal = normalRef.current.clone().applyQuaternion(rotationQuaternion).normalize();
+
+      // Align the plane's normal to the rotated normal
+      const quaternion = new THREE.Quaternion();
+      quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, 1), rotatedNormal);
+      setSlicePlane({
+        a: rotatedNormal.x,
+        b: rotatedNormal.y,
+        c: rotatedNormal.z,
+        d: slicePlane.d
+      })
+
+      planeRef.current.quaternion.copy(quaternion);
+    }
+  });
 
   return (
-    <mesh ref={sliceRef} position={[0, positionY, 0]} rotation={[-Math.PI / 2, 0, 0]}>
-      <planeGeometry args={[0.5, 0.5]} />
-      <meshBasicMaterial color="black" wireframe={true} />
+    <mesh ref={planeRef} position={[0, 0, 0]}>
+      <planeGeometry args={[1.7, 1.7]} />
+      <meshStandardMaterial
+        color="gray"
+        transparent={true}
+        opacity={0.5}
+        side={THREE.DoubleSide} // Render both sides
+      />
     </mesh>
-  )
+  );
 }
 
 function UpdateCamera() {
@@ -106,7 +168,6 @@ export default function ObjectColorSolid() {
     setSliceVisible,
     sliceSwitch,
     setSliceSwitch,
-    setPositionY
   } = useAppContext();
 
   // When necessary, load in the OCS
@@ -176,22 +237,22 @@ export default function ObjectColorSolid() {
       <Canvas 
         orthographic 
         camera={{    
-            position: [0.43, 0.3, 0.4],
+            position: [2.15, 1.5, 2],
             zoom: 1,
-            near: 0.001,
-            far: 10000,
-            top: 4,
-            bottom: -4,
+            near: 0.0001,
+            far: 10,
+            top: 6,
+            bottom: -6,
             left: window.innerWidth / window.innerHeight* -4,
             right: window.innerWidth / window.innerHeight * 4
         }} 
         // camera={{ position: [0.43, 0.3, 0.4], fov: 60 }}
-        onMouseMove={(e) => {
-          // Mouse position -> normalized device coordinates * 2
-          const [smallestY, largestY] = [-0.3, 0.3]
-          const y = (-(e.clientY / window.innerHeight) * 2 + 1) * 0.7
-          setPositionY(Math.min(largestY, Math.max(smallestY, y)))
-        }}  
+        // onMouseMove={(e) => {
+        //   // Mouse position -> normalized device coordinates * 2
+        //   const [smallestY, largestY] = [-0.3, 0.3]
+        //   const y = (-(e.clientY / window.innerHeight) * 2 + 1) * 0.7
+        //   setPositionY(Math.min(largestY, Math.max(smallestY, y)))
+        // }}  
         onPointerDown={() => {
             if (sliceVisible) {
               setSliceVisible(false)
@@ -202,7 +263,9 @@ export default function ObjectColorSolid() {
       >
         <UpdateCamera />
         {sliceDimension == 2 && sliceVisible && (
-          <MovingYSlice></MovingYSlice>
+          <>
+            <MovingPlane></MovingPlane>
+          </>
         )}
         {ocsData && (
           <CustomMesh 
