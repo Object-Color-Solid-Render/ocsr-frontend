@@ -18,7 +18,6 @@ export default function GraphDisplay(){
             gap = 'md'
         >
             <SpectraGraph></SpectraGraph>
-            <SpectraInputs></SpectraInputs>
         </Flex>
     )
 }

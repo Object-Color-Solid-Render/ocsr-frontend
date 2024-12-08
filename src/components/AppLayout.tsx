@@ -4,12 +4,15 @@ import {
   Grid,
   useMantineTheme,
   Title,
+  ActionIcon,
+  Drawer, // Added import
 } from '@mantine/core';
 import ObjectColorSolid from './ObjectColorSolid';
 import SliceDisplay from './SliceDisplay/SliceDisplay';
 import GraphDisplay from './GraphDisplay/GraphDisplay';
 import SpectraInputs from './GraphDisplay/SpectraInputs';
 import { EntryParams } from './GraphDisplay/SpectraInputs';
+import { IconMenu2 } from '@tabler/icons-react'; // Added import
 
 import {
   createContext,
@@ -273,6 +276,7 @@ export const useAppContext = (): AppContextType => {
 export default function AppLayout() {
   const theme = useMantineTheme();
   const { setSpectralDB } = useAppContext();
+  const [drawerOpened, setDrawerOpened] = useState(false); // Added state for Drawer
 
   // Fetch spectral database on mount
   useEffect(() => {
@@ -307,9 +311,25 @@ export default function AppLayout() {
   return (
     <AppShell header={{ height: 50 }} padding="sm">
       {/* Header with title */}
-      <AppShell.Header style={{ backgroundColor: theme.colors.myColor[7], color: "white", display: "flex", alignItems: "center" }}>
+      <AppShell.Header style={{ backgroundColor: theme.colors.myColor[7], color: "white", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
         <img src={ocstudioLogo} alt="OCStudio Logo" style={{ marginLeft: 'lg', height: '40px' }} />
+        {/* Icon button to open the drawer */}
+        <ActionIcon variant="outline" onClick={() => setDrawerOpened(true)}>
+          <IconMenu2 size={18} />
+        </ActionIcon>
       </AppShell.Header>
+
+      {/* Drawer overlay for entry edits */}
+      <Drawer
+        opened={drawerOpened}
+        onClose={() => setDrawerOpened(false)}
+        title="Edit Entries"
+        padding="xl"
+        size="md"
+        position="right"
+      >
+        <SpectraInputs />
+      </Drawer>
 
       {/* Main content */}
       <AppShell.Main>
