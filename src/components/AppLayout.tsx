@@ -320,8 +320,8 @@ export default function AppLayout() {
   return (
     <AppShell header={{ height: 50 }} padding="sm">
       {/* Header with title */}
-      <AppShell.Header style={{ backgroundColor: '#F5F5F5', color: "black", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-        <img src={ocstudioLogo} alt="OCStudio Logo" style={{ marginLeft: '30px', height: '40px' }} />
+      <AppShell.Header style={{ backgroundColor: '#F5F5F5', color: "black", display: "flex", alignItems: "center", justifyContent: "space-between", paddingRight: "2%", paddingLeft: "2%"}}>
+        <img src={ocstudioLogo} alt="OCStudio Logo" style={{ height: '95%' }} />
         <div>
           <Button
             component="a"
@@ -342,7 +342,7 @@ export default function AppLayout() {
             About Us
           </Button>
           <ActionIcon variant="subtle" onClick={() => setDrawerOpened(true)}>
-            <IconMenu2 size={18} />
+            <IconMenu2 size={18}/>
           </ActionIcon>
         </div>
       </AppShell.Header>
@@ -363,7 +363,7 @@ export default function AppLayout() {
       {/* Main content */}
       <AppShell.Main>
         <Container my="xl" fluid>
-          <div style={{ position: "absolute", marginTop: "-5%", marginLeft: "-2.5%", width: "100%", height: "100%", display: "flex", justifyContent: "center", alignItems: "center", zIndex: 1 }}>
+          <div style={{ position: "absolute", width: "100%", height: "100%", display: "flex", justifyContent: "center", alignItems: "center", zIndex: 1 }}>
             <ObjectColorSolid />
           </div>
           <Grid>

@@ -56,7 +56,8 @@ export default function Slice() {
                         });
                     })     
                     setSliceDataArray(newSliceDataArray)  
-                    console.log(newSliceDataArray)        
+                    console.log(newSliceDataArray)  
+                    setOpen(true)      
                 })
                 .catch(error => console.error('Error fetching data:', error));
             }

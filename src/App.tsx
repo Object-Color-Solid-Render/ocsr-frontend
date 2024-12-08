@@ -9,6 +9,7 @@ import AboutUs from './components/AboutUs'; // Added import
 export default function App() {
   return (
     <MantineProvider theme={theme}>
+      
       <AppContextProvider>
         <Router>
           <Routes>
