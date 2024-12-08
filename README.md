@@ -51,7 +51,7 @@ An object color solid renderer built with React and TypeScript, using Vite as th
 
 ### Accessing the Application
 - The React frontend will be running on `http://localhost:5173` (default Vite port).
-- The Flask backend will be running on `http://localhost:5000`.
+- The Flask backend will be running on `http://localhost:5050`.
 
 ### Additional Information
 - Ensure both servers are running simultaneously for full functionality.

@@ -32,7 +32,7 @@ export default function Slice() {
             });
             console.log(params.toString())
             
-            fetch(`http://localhost:5000/compute_ocs_slice?${params.toString()}`)
+            fetch(`http://localhost:5050/compute_ocs_slice?${params.toString()}`)
                 .then(response => {
                     if (!response.ok) throw new Error('Failed to fetch slice data');
                     return response.json();
@@ -72,6 +72,7 @@ export default function Slice() {
                                 geometry={sliceData.geometry}
                                 vertexShader={sliceData.vertexShader}
                                 fragmentShader={sliceData.fragmentShader}
+                                rotationMatrix={new THREE.Matrix4()}
                                 scale={5}
                             /> 
                             {/* <mesh>

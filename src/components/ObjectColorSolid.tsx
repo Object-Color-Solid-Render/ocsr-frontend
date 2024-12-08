@@ -3,65 +3,81 @@ import { Canvas, useFrame, extend, useThree } from '@react-three/fiber';
 import { OrbitControls, shaderMaterial } from '@react-three/drei';
 import * as THREE from 'three';
 import { useAppContext } from './AppLayout';
-import { Button, FileInput, localStorageColorSchemeManager } from '@mantine/core';
-import { vec3 } from 'three/webgpu';
+import { Button } from '@mantine/core';
+import { EntryParams } from './SpectraInputs'; // Ensure EntryParams is imported
+import { useDrag } from '@use-gesture/react';
 
+// Define custom shader material with uniforms
 const CustomShaderMaterial = shaderMaterial(
-  { col: new THREE.Color(0xff00ff) },
-  '',
-  ''
+  { col: new THREE.Color(0xff00ff) }, // Uniforms
+  '',  // Vertex shader placeholder
+  ''   // Fragment shader placeholder
 );
 
+// Extend to make the material available in JSX
 extend({ CustomShaderMaterial });
 
-export function CustomMesh({ geometry, vertexShader, fragmentShader, center, scale=1}) {
-  const meshRef = useRef();
-  const { clock } = useThree();
+// Type definition for CustomMesh props
+type CustomMeshProps = {
+  geometry: THREE.BufferGeometry;
+  vertexShader: string;
+  fragmentShader: string;
+  center: number[];
+  rotationMatrix: THREE.Matrix4;
+};
 
+// Component to render a custom mesh with shader material
+export function CustomMesh({ geometry, vertexShader, fragmentShader, center, rotationMatrix=M, scale=1 }: CustomMeshProps & { rotationMatrix: THREE.Matrix4 }) {
+  const meshRef = useRef<THREE.Mesh>();
+  // Create material instance and set shaders
   const material = new CustomShaderMaterial();
   material.vertexShader = vertexShader;
   material.fragmentShader = fragmentShader;
 
-  useFrame(() => {
+  useEffect(() => {
     if (meshRef.current) {
-      material.uniforms.col.value.setHSL(clock.getElapsedTime() % 1, 1, 0.5);
-      // const point = new THREE.Vector3(...center)
-      // if (meshRef.current) {
-      //   //meshRef.current.position.sub(point);
-      //   // Add slow rotation
-      //   meshRef.current.rotation.y += 0.01; // Rotate around Y-axis
-      //   meshRef.current.rotation.x += 0.005; // Rotate around X-axis
-      //   meshRef.current.rotation.z += 0.003; // Rotate around Z-axis
-      //   //meshRef.current.position.add(point); 
-      // }
+      meshRef.current.matrixAutoUpdate = false;
+      meshRef.current.matrix.copy(rotationMatrix);
+      meshRef.current.updateMatrixWorld(true);
     }
-  });
-
-  return <mesh ref={meshRef} scale= {scale} geometry={geometry} material={material} />;
+  }, [rotationMatrix]);
+  // <group position={center}>
+  //  <axesHelper args={[1]} />
+  // </group>
+  return (
+    <>
+      <group position={center}>
+        <mesh ref={meshRef} scale={scale} geometry={geometry} material={material} />
+      </group>
+    </>
+  );
 }
 
+// Type definitions for data structures
 export type OcsData = {
-  geometry: THREE.BufferGeometry,
-  vertexShader: String,
-  fragmentShader: String,
-}
+  geometry: THREE.BufferGeometry;
+  vertexShader: string;
+  fragmentShader: string;
+};
 
-// Implement the moving slice
-// function MovingYSlice() {
-//   const sliceRef = useRef()
-//   const { positionY } = useAppContext()
-
-//   useFrame(() => {
-//     if (sliceRef) sliceRef.current.position.y = positionY 
-//   })
-
-//   return (
-//     <mesh ref={sliceRef} position={[0, positionY, 0]} rotation={[-Math.PI / 2, 0, 0]}>
-//       <planeGeometry args={[1, 1]} />
-//       <meshBasicMaterial color="black" wireframe={true} />
-//     </mesh>
-//   )
-// }
+export type EntryParams = {
+  wavelengthBounds: { min: number; max: number };
+  omitBetaBand: boolean;
+  isMaxBasis: boolean;
+  wavelengthSampleResolution: number;
+  spectralPeaks: {
+    peakWavelength1: number;
+    peakWavelength2: number;
+    peakWavelength3: number;
+    peakWavelength4: number;
+  };
+  activeCones: {
+    isCone1Active: boolean;
+    isCone2Active: boolean;
+    isCone3Active: boolean;
+    isCone4Active: boolean;
+  };
+};
 
 function MovingPlane() {
   const planeRef = useRef();
@@ -125,44 +141,37 @@ function MovingPlane() {
   );
 }
 
+// Component to update the camera on resize
 function UpdateCamera() {
   const { camera, size } = useThree();
 
   useEffect(() => {
-      const updateCamera = () => {
-          const aspect = size.width / size.height;
-          camera.left = aspect * -1;
-          camera.right = aspect * 1;
-          camera.top = 1;
-          camera.bottom = -1;
-          camera.updateProjectionMatrix();
-      };
-      updateCamera();
+    const updateCamera = () => {
+      const aspect = size.width / size.height;
+      camera.left = aspect * -1;
+      camera.right = aspect * 1;
+      camera.top = 1;
+      camera.bottom = -1;
+      camera.updateProjectionMatrix();
+    };
+    updateCamera();
   }, [camera, size]);
 
   return null;
 }
 
+// Main component to render the Object Color Solid
 export default function ObjectColorSolid() {
-  const [ocsData, setOcsData] = useState<OcsData>({geometry: new THREE.BufferGeometry(), vertexShader: '', fragmentShader: ''});
-  const [ocs2Data, setOcs2Data] = useState<OcsData>({geometry: new THREE.BufferGeometry(), vertexShader: '', fragmentShader: ''});
-  // Pass in relevant global state
-  const { 
-
-    // for generating OCS
-    spectralPeaksNew,
-    spectralPeaks,
-    activeCones,
-    omitBetaBand,
-    isMaxBasis,
-    wavelengthSampleResolution,
-
-    // for spectra graph
+  const [ocsDataArray, setOcsDataArray] = useState<OcsData[]>([]); // Changed to array to handle multiple geometries
+  const [rotationMatrix, setRotationMatrix] = useState(new THREE.Matrix4());
+  const [dragging, setDragging] = useState(false);
+  const {
+    fetchTrigger,
+    setFetchTrigger,
+    entries,
+    setEntries,
     setConeResponses,
     setWavelengths,
-
-    submitSwitch, 
-    wavelengthBounds, 
     sliceDimension,
     sliceVisible,
     setSliceVisible,
@@ -170,122 +179,145 @@ export default function ObjectColorSolid() {
     setSliceSwitch,
   } = useAppContext();
 
-  // When necessary, load in the OCS
+  // Add a default entry on component mount
   useEffect(() => {
-    const params = new URLSearchParams({
-      minWavelength: wavelengthBounds.min.toString(),
-      maxWavelength: wavelengthBounds.max.toString(),
-      omitBetaBand: omitBetaBand.toString(),
-      isMaxBasis: isMaxBasis.toString(),
-      wavelengthSampleResolution: wavelengthSampleResolution.toString(),
-      peakWavelength1: spectralPeaks.peakWavelength1.toString(),
-      peakWavelength2: spectralPeaks.peakWavelength2.toString(),
-      peakWavelength3: spectralPeaks.peakWavelength3.toString(),
-      peakWavelength4: spectralPeaks.peakWavelength4.toString(),
-      isCone1Active: activeCones.isCone1Active.toString(),
-      isCone2Active: activeCones.isCone2Active.toString(),
-      isCone3Active: activeCones.isCone3Active.toString(),
-      isCone4Active: activeCones.isCone4Active.toString()
-    });
-    console.log("================================================================================")
-    console.log(params.toString());
-    console.log("================================================================================")
+    const defaultEntry = {
+      wavelengthBounds: { min: 390, max: 700 },
+      omitBetaBand: true,
+      isMaxBasis: false,
+      wavelengthSampleResolution: 20,
+      spectralPeaks: {
+        peakWavelength1: 455,
+        peakWavelength2: 543,
+        peakWavelength3: 566,
+        peakWavelength4: 560,
+      },
+      activeCones: {
+        isCone1Active: true,
+        isCone2Active: true,
+        isCone3Active: true,
+        isCone4Active: false,
+      }
+    };
+    setEntries([defaultEntry]);
+    setFetchTrigger(true);
+  }, [setFetchTrigger, setEntries]);
 
-    fetch(`http://localhost:5000/get_ocs_data?${params.toString()}`)
+  // Fetch OCS data when necessary
+  useEffect(() => {
+    if (entries.length === 0 || !fetchTrigger) return;
+
+    const params = new URLSearchParams();
+
+    entries.forEach((entry, index) => {
+      params.append(`entries[${index}][minWavelength]`, entry.wavelengthBounds.min.toString());
+      params.append(`entries[${index}][maxWavelength]`, entry.wavelengthBounds.max.toString());
+      params.append(`entries[${index}][omitBetaBand]`, entry.omitBetaBand.toString());
+      params.append(`entries[${index}][isMaxBasis]`, entry.isMaxBasis.toString());
+      params.append(`entries[${index}][wavelengthSampleResolution]`, entry.wavelengthSampleResolution.toString());
+      params.append(`entries[${index}][peakWavelength1]`, entry.spectralPeaks.peakWavelength1.toString());
+      params.append(`entries[${index}][peakWavelength2]`, entry.spectralPeaks.peakWavelength2.toString());
+      params.append(`entries[${index}][peakWavelength3]`, entry.spectralPeaks.peakWavelength3.toString());
+      params.append(`entries[${index}][peakWavelength4]`, entry.spectralPeaks.peakWavelength4.toString());
+      params.append(`entries[${index}][isCone1Active]`, entry.activeCones.isCone1Active.toString());
+      params.append(`entries[${index}][isCone2Active]`, entry.activeCones.isCone2Active.toString());
+      params.append(`entries[${index}][isCone3Active]`, entry.activeCones.isCone3Active.toString());
+      params.append(`entries[${index}][isCone4Active]`, entry.activeCones.isCone4Active.toString());
+    });
+
+    fetch(`http://localhost:5050/get_ocs_data?${params.toString()}`)
       .then(response => {
         if (!response.ok) throw new Error('Failed to fetch data');
         return response.json();
       })
-      .then(data => {
-        const geometry = new THREE.BufferGeometry();
-        geometry.setAttribute('position', new THREE.Float32BufferAttribute(data.vertices.flat(), 3));
-        geometry.setAttribute('normal', new THREE.Float32BufferAttribute(data.normals.flat(), 3));
-        geometry.setAttribute('color', new THREE.Float32BufferAttribute(data.colors.flat(), 3));
-        geometry.setIndex(data.indices.flat());
-        geometry.translate(-0.5, -0.5, -0.5);
+      .then(dataArray => {
+        const newOcsDataArray = dataArray.map((data: any, index: number) => {
+          // Create geometry from fetched data
+          const geometry = new THREE.BufferGeometry();
+          geometry.setAttribute('position', new THREE.Float32BufferAttribute(data.vertices.flat(), 3));
+          geometry.setAttribute('normal', new THREE.Float32BufferAttribute(data.normals.flat(), 3));
+          geometry.setAttribute('color', new THREE.Float32BufferAttribute(data.colors.flat(), 3));
+          geometry.setIndex(data.indices.flat());
 
-        const geometry2 = geometry.clone()
-        geometry2.translate(1.5, 0, 0)
-
-        setOcsData({
-          geometry,
-          vertexShader: data.vertexShader,
-          fragmentShader: data.fragmentShader
-        });
-        
-
-        setOcs2Data({
-          geometry: geometry2,
-          vertexShader: data.vertexShader,
-          fragmentShader: data.fragmentShader
+          return {
+            geometry,
+            vertexShader: data.vertexShader,
+            fragmentShader: data.fragmentShader,
+          } as OcsData;
         });
 
-        
-        setWavelengths(data.wavelengths.flat())
+        setOcsDataArray(newOcsDataArray);
+
+        // Update wavelengths and cone responses if needed
+        // Assuming dataArray[0] has the required data
+        setWavelengths(dataArray[0].wavelengths.flat());
         setConeResponses({
-          coneResponse1: data.s_response.flat(),
-          coneResponse2: data.m_response.flat(),
-          coneResponse3: data.l_response.flat(),
-          coneResponse4: data.q_response.flat(),
-        })
+          coneResponse1: dataArray[0].s_response.flat(),
+          coneResponse2: dataArray[0].m_response.flat(),
+          coneResponse3: dataArray[0].l_response.flat(),
+          coneResponse4: dataArray[0].q_response.flat(),
+        });
       })
-      .catch(error => console.error('Error fetching data:', error));
-  }, [submitSwitch]);
+      .catch(error => console.error('Error fetching data:', error))
+      .finally(() => setFetchTrigger(false));
+  }, [fetchTrigger, entries, setConeResponses, setWavelengths, setFetchTrigger]);
+
+  // Handle drag to rotate geometries
+  const bind = useDrag(({ movement: [mx, my], memo = rotationMatrix, dragging }) => {
+    if (dragging) {
+      const rotation = new THREE.Matrix4().makeRotationFromEuler(new THREE.Euler(my * 0.01, mx * 0.01, 0));
+      setRotationMatrix(rotation.multiply(memo));
+    }
+    return memo;
+  });
+
+  // Calculate grid positions for geometries
+  const gridPositions = ocsDataArray.map((_, index) => {
+    const cols = Math.ceil(Math.sqrt(ocsDataArray.length));
+    const rows = Math.ceil(ocsDataArray.length / cols);
+    const col = index % cols;
+    const row = Math.floor(index / cols);
+    return [(col - (cols - 1) / 2) * 1.5, (row - (rows - 1) / 2) * 1.5, 0];
+  });
 
   return (
-    <div style={{ width: '100%', height: '100%', position: 'relative' }}>
-      <Canvas 
-        orthographic 
-        camera={{    
-            position: [2.15, 1.5, 2],
-            zoom: 1,
-            near: 0.0001,
-            far: 10,
-            top: 6,
-            bottom: -6,
-            left: window.innerWidth / window.innerHeight* -4,
-            right: window.innerWidth / window.innerHeight * 4
-        }} 
-        // camera={{ position: [0.43, 0.3, 0.4], fov: 60 }}
-        // onMouseMove={(e) => {
-        //   // Mouse position -> normalized device coordinates * 2
-        //   const [smallestY, largestY] = [-0.3, 0.3]
-        //   const y = (-(e.clientY / window.innerHeight) * 2 + 1) * 0.7
-        //   setPositionY(Math.min(largestY, Math.max(smallestY, y)))
-        // }}  
+    <div {...bind()} style={{ width: '100%', height: '100%', position: 'relative' }}>
+      {/* Button to update the entry parameters */}
+      {/* Canvas to render the 3D scene */}
+      <Canvas
+        orthographic
+        camera={{
+          position: [0, 0, 3.0],
+          zoom: 1,
+          near: 0.001,
+          far: 10000,
+          top: 8,
+          bottom: -8,
+          left: window.innerWidth / window.innerHeight * -8,
+          right: window.innerWidth / window.innerHeight * 8,
+        }}
         onPointerDown={() => {
-            if (sliceVisible) {
-              setSliceVisible(false)
-              setSliceSwitch(sliceSwitch + 1) // Trigger update in the slice display
-            }
+          if (sliceVisible) {
+            setSliceVisible(false)
+            setSliceSwitch(sliceSwitch + 1) // Trigger update in the slice display
           }
-        }
+          setDragging(true)
+        }}
+        onPointerUp={() => setDragging(false)}
       >
         <UpdateCamera />
-        {sliceDimension == 2 && sliceVisible && (
-          <>
-            <MovingPlane></MovingPlane>
-          </>
-        )}
-        {ocsData && (
-          <CustomMesh 
-            // key={submitSwitch}
+        {sliceDimension === 2 && sliceVisible && <MovingPlane></MovingPlane>}
+        {ocsDataArray.map((ocsData, index) => (
+          <CustomMesh
+            key={index}
             geometry={ocsData.geometry}
             vertexShader={ocsData.vertexShader}
             fragmentShader={ocsData.fragmentShader}
-            center={[0, 0, 0]}
+            center={gridPositions[index]} // Use grid positions
+            rotationMatrix={rotationMatrix}
           />
-        )}
-        {/* {ocs2Data && (
-          <CustomMesh 
-            // key={submitSwitch}
-            geometry={ocs2Data.geometry}
-            vertexShader={ocs2Data.vertexShader}
-            fragmentShader={ocs2Data.fragmentShader}
-            center={[1.5, 0, 0]}
-          />
-        )} */}
-        <OrbitControls target={[0, 0, 0]} />
+        ))}
+        {/* Remove OrbitControls to prevent camera rotation */}
         <axesHelper args={[5]} />
       </Canvas>
     </div>

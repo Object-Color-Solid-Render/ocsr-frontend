@@ -1,47 +1,45 @@
-import { AppShell, Container, Grid, useMantineTheme, Title, Stack, MantineTheme } from "@mantine/core";
-import ObjectColorSolid from "./ObjectColorSolid";
-import SliceDisplay from "./SliceDisplay/SliceDisplay";
-import GraphDisplay from "./GraphDisplay/GraphDisplay";
-import SpectraInputs from "./GraphDisplay/SpectraInputs";
-import { createContext, Dispatch, ReactNode, SetStateAction, useContext, useEffect, useState } from "react";
-import React from "react";
+import {
+  AppShell,
+  Container,
+  Grid,
+  useMantineTheme,
+  Title,
+} from '@mantine/core';
+import ObjectColorSolid, { EntryParams } from './ObjectColorSolid';
+import SliceDisplay from './SliceDisplay/SliceDisplay';
+import GraphDisplay from './GraphDisplay/GraphDisplay';
+import SpectraInputs from './GraphDisplay/SpectraInputs';
+import {
+  createContext,
+  Dispatch,
+  ReactNode,
+  SetStateAction,
+  useContext,
+  useEffect,
+  useState,
+} from 'react';
+import React from 'react';
+import ocstudioLogo from '../ocstudio.svg';
 
-const getWindowDimensions = () => {
-  const { innerWidth: width, innerHeight: height } = window;
-  return { width, height };
-};
-
+// Custom hook to get window dimensions
 const useWindowDimensions = () => {
-  const [windowDimensions, setWindowDimensions] = useState(getWindowDimensions());
+  const [windowDimensions, setWindowDimensions] = useState(() => {
+    const { innerWidth: width, innerHeight: height } = window;
+    return { width, height };
+  });
+
   useEffect(() => {
     const handleResize = () => {
-      setWindowDimensions(getWindowDimensions());
+      setWindowDimensions({ width: window.innerWidth, height: window.innerHeight });
     };
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
   }, []);
+
   return windowDimensions;
 };
 
-const OCSStyle: React.CSSProperties = {
-  position: "absolute",
-  marginTop: "-5%",
-  marginLeft: "-2.5%",
-  width: "100%",
-  height: "100%",
-  display: "flex",
-  justifyContent: "center",
-  alignItems: "center",
-  zIndex: 1,
-};
-
-const headerStyle = (theme: MantineTheme) => ({
-  backgroundColor: theme.colors.myColor[7],
-  color: "white",
-  display: "flex",
-  alignItems: "center",
-});
-
+// Type definitions for context
 type SpectralPeakType = {
   peak: number;
   isActive: boolean;
@@ -70,26 +68,20 @@ type Plane = {
 
 type SpectralDB = Record<string, SpectralDBEntry>;
 
-// all state/context members
+// Type definitions for context values
 type AppContextType = {
   height: number;
   width: number;
-
   spectralDB: SpectralDB;
   setSpectralDB: Dispatch<SetStateAction<SpectralDB>>;
-
   omitBetaBand: boolean;
   setOmitBetaBand: Dispatch<SetStateAction<boolean>>;
-
   isMaxBasis: boolean;
   setIsMaxBasis: Dispatch<SetStateAction<boolean>>;
-
   wavelengthSampleResolution: number;
   setWavelengthSampleResolution: Dispatch<SetStateAction<number>>;
-  
   spectralPeaksNew: SpectralPeaksType;
   setSpectralPeaksNew: Dispatch<SetStateAction<SpectralPeaksType>>;
-  
   spectralPeaks: {
     peakWavelength1: number;
     peakWavelength2: number;
@@ -114,16 +106,12 @@ type AppContextType = {
     isCone3Active: boolean;
     isCone4Active: boolean;
   }>>;
-
   sliceDimension: number;
   setSliceDimension: Dispatch<SetStateAction<number>>;
-
   submitSwitch: number;
   setSubmitSwitch: Dispatch<SetStateAction<number>>;
-
   coneResponseType: string;
   setConeResponseType: Dispatch<SetStateAction<string>>;
-
   wavelengthBounds: {
     min: number;
     max: number;
@@ -132,7 +120,6 @@ type AppContextType = {
     min: number;
     max: number;
   }>>;
-
   coneResponses: {
     coneResponse1: Array<number>;
     coneResponse2: Array<number>;
@@ -145,22 +132,24 @@ type AppContextType = {
     coneResponse3: Array<number>;
     coneResponse4: Array<number>;
   }>>;
-
   wavelengths: Array<number>;
   setWavelengths: Dispatch<SetStateAction<Array<number>>>;
-
   sliceVisible: boolean;
   setSliceVisible: Dispatch<SetStateAction<boolean>>;
-
   sliceSwitch: number;
   setSliceSwitch: Dispatch<SetStateAction<number>>;
-
   slicePlane: Plane;
-  setSlicePlane: Dispatch<SetStateAction<Plane>>;  // It'll only have a, b, c changed based on rotation (d is fixed per OCS)
+  setSlicePlane: Dispatch<SetStateAction<Plane>>;  // It'll only have a, b, c changed based on rotation (d is fixed per OCS)  
+  fetchTrigger: boolean;
+  setFetchTrigger: Dispatch<SetStateAction<boolean>>;
+  entries: EntryParams[];
+  setEntries: Dispatch<SetStateAction<EntryParams[]>>;
 };
 
+// Create context
 export const AppContext = createContext<AppContextType | undefined>(undefined);
 
+// Default peak values and wavelength bounds
 export const DEFAULT_S_PEAK = 455;
 export const DEFAULT_M_PEAK = 543;
 export const DEFAULT_L_PEAK = 566;
@@ -168,11 +157,9 @@ export const DEFAULT_Q_PEAK = 560;
 const MIN_VISIBLE_WAVELENGTH = 390;
 const MAX_VISIBLE_WAVELENGTH = 700;
 
-// init state
+// Context provider component
 export const AppContextProvider = ({ children }: { children: ReactNode }) => {
-
   const [spectralDB, setSpectralDB] = useState<SpectralDB>({});
-
   const [omitBetaBand, setOmitBetaBand] = useState(true);
   const [isMaxBasis, setIsMaxBasis] = useState(false);
   const [wavelengthSampleResolution, setWavelengthSampleResolution] = useState(20);
@@ -182,28 +169,19 @@ export const AppContextProvider = ({ children }: { children: ReactNode }) => {
     peakWavelength3: DEFAULT_L_PEAK,
     peakWavelength4: DEFAULT_Q_PEAK,
   });
-  
   const [spectralPeaksNew, setSpectralPeaksNew] = useState<SpectralPeaksType>({
     peak1: { peak: DEFAULT_S_PEAK, isActive: true },
     peak2: { peak: DEFAULT_M_PEAK, isActive: true },
     peak3: { peak: DEFAULT_L_PEAK, isActive: true },
     peak4: { peak: DEFAULT_Q_PEAK, isActive: false },
-  });  
-  
+  });
   const [activeCones, setActiveCones] = useState({
     isCone1Active: true,
     isCone2Active: true,
     isCone3Active: true,
     isCone4Active: false,
   });
-  
   const [sliceDimension, setSliceDimension] = useState(2);
-  const [conePeaks, setConePeaks] = useState({
-    conePeak1: DEFAULT_S_PEAK,
-    conePeak2: DEFAULT_M_PEAK,
-    conePeak3: DEFAULT_L_PEAK,
-    conePeak4: DEFAULT_Q_PEAK,
-  });
   const [coneResponseType, setConeResponseType] = useState("Human Tetrachromat");
   const [submitSwitch, setSubmitSwitch] = useState(1);
   const { height, width } = useWindowDimensions();
@@ -221,35 +199,30 @@ export const AppContextProvider = ({ children }: { children: ReactNode }) => {
   const [sliceVisible, setSliceVisible] = useState(false);
   const [sliceSwitch, setSliceSwitch] = useState(0);
   const [slicePlane, setSlicePlane] = useState({a: 0, b: 0, c: 0, d: 0});
+  const [fetchTrigger, setFetchTrigger] = useState(false);
+  const [entries, setEntries] = useState<EntryParams[]>([]);
 
   return (
     <AppContext.Provider
       value={{
-
+        height,
+        width,
         spectralDB,
         setSpectralDB,
-
         omitBetaBand,
         setOmitBetaBand,
         isMaxBasis,
         setIsMaxBasis,
         wavelengthSampleResolution,
         setWavelengthSampleResolution,
-
         spectralPeaks,
         setSpectralPeaks,
-        
         spectralPeaksNew,
         setSpectralPeaksNew,
-
         activeCones,
         setActiveCones,
-
-        height,
-        width,
         sliceDimension,
         setSliceDimension,
-
         coneResponseType,
         setConeResponseType,
         submitSwitch,
@@ -266,6 +239,10 @@ export const AppContextProvider = ({ children }: { children: ReactNode }) => {
         setSliceSwitch,
         slicePlane,
         setSlicePlane,
+        fetchTrigger,
+        setFetchTrigger,
+        entries,
+        setEntries,
       }}
     >
       {children}
@@ -273,7 +250,8 @@ export const AppContextProvider = ({ children }: { children: ReactNode }) => {
   );
 };
 
-export const useAppContext = (): AppContextType => { // **Updated to ensure non-undefined return**
+// Custom hook to use the context
+export const useAppContext = (): AppContextType => {
   const context = useContext(AppContext);
   if (!context) {
     throw new Error('useAppContext must be used within an AppProvider');
@@ -281,68 +259,65 @@ export const useAppContext = (): AppContextType => { // **Updated to ensure non-
   return context;
 };
 
+// Main layout component
 export default function AppLayout() {
   const theme = useMantineTheme();
-  const { setSpectralDB } = useAppContext(); // This will now work because AppContextProvider wraps AppLayout.
-  
+  const { setSpectralDB } = useAppContext();
+
+  // Fetch spectral database on mount
   useEffect(() => {
     
     console.log("Fetching DB data...");
   
-    fetch(`http://localhost:5000/get_spectral_db`)
+    fetch(`http://localhost:5050/get_spectral_db`)
       .then((response) => {
         if (!response.ok) throw new Error('Failed to fetch data');
         return response.json();
       })
-      .then((responseData) => {
-        // Ensure responseData has a `data` property and it's an array
+      .then(responseData => {
         const { data } = responseData;
         if (!Array.isArray(data)) {
           throw new Error('Invalid data format: Expected an array in "data" property');
         }
-  
+
         // Transform array into a SpectralDB map
         const spectralDB: SpectralDB = data.reduce((acc, item) => {
           if (Array.isArray(item)) {
             const [commonName, scientificName, peaks, source, note] = item;
             acc[commonName] = { scientificName, peaks, source, note };
-          } else {
-            console.warn('Unexpected item format:', item);
           }
           return acc;
-        }, {} as SpectralDB);
-  
-        console.log("SpectralDB:", spectralDB);
+        }, {});
+
         setSpectralDB(spectralDB);
       })
-      .catch((error) => console.error('Error fetching or transforming data:', error));
+      .catch(error => console.error('Error fetching or transforming data:', error));
   }, [setSpectralDB]);
-  
-  return (
-      <AppShell
-          header={{ height: 50 }}
-          padding="sm"
-      >
-          <AppShell.Header style={headerStyle(theme)}>
-              <Title order={3} ml="lg"> Object Color Solid Renderer </Title>
-          </AppShell.Header>
 
-          <AppShell.Main>
-              <Container my="xl" fluid>
-                  <div style={OCSStyle}>
-                      <ObjectColorSolid/>
-                  </div>
-                  <Grid>
-                      <Grid.Col span={1} style={{zIndex: 2}}>
-                          <SliceDisplay/>
-                      </Grid.Col>
-                      <Grid.Col span={10} style={{ position: 'relative' }}></Grid.Col>
-                      <Grid.Col span={1} style={{zIndex: 2}}>
-                          <GraphDisplay/>
-                      </Grid.Col>
-                  </Grid>
-              </Container>
-          </AppShell.Main>
-      </AppShell>
+  return (
+    <AppShell header={{ height: 50 }} padding="sm">
+      {/* Header with title */}
+      <AppShell.Header style={{ backgroundColor: theme.colors.myColor[7], color: "white", display: "flex", alignItems: "center" }}>
+        <img src={ocstudioLogo} alt="OCStudio Logo" style={{ marginLeft: 'lg', height: '40px' }} />
+      </AppShell.Header>
+
+      {/* Main content */}
+      <AppShell.Main>
+        <Container my="xl" fluid>
+          <div style={{ position: "absolute", marginTop: "-5%", marginLeft: "-2.5%", width: "100%", height: "100%", display: "flex", justifyContent: "center", alignItems: "center", zIndex: 1 }}>
+            <ObjectColorSolid />
+          </div>
+          <Grid>
+            <Grid.Col span={1} style={{ zIndex: 2 }}>
+              <SliceDisplay />
+            </Grid.Col>
+            <Grid.Col span={10} style={{ position: 'relative' }}></Grid.Col>
+            <Grid.Col span={1} style={{ zIndex: 2 }}>
+              <GraphDisplay />
+            </Grid.Col>
+          </Grid>
+        </Container>
+      </AppShell.Main>
+    </AppShell>
   );
 }
