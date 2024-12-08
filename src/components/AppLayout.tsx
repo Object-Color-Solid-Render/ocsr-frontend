@@ -46,18 +46,6 @@ const useWindowDimensions = () => {
   return windowDimensions;
 };
 
-// Type definitions for context
-type SpectralPeakType = {
-  peak: number;
-  isActive: boolean;
-};
-
-type SpectralPeaksType = {
-  peak1: SpectralPeakType;
-  peak2: SpectralPeakType;
-  peak3: SpectralPeakType;
-  peak4: SpectralPeakType;
-};
 
 type SpectralDBEntry = {
   scientificName: string;
@@ -81,38 +69,6 @@ type AppContextType = {
   width: number;
   spectralDB: SpectralDB;
   setSpectralDB: Dispatch<SetStateAction<SpectralDB>>;
-  omitBetaBand: boolean;
-  setOmitBetaBand: Dispatch<SetStateAction<boolean>>;
-  isMaxBasis: boolean;
-  setIsMaxBasis: Dispatch<SetStateAction<boolean>>;
-  wavelengthSampleResolution: number;
-  setWavelengthSampleResolution: Dispatch<SetStateAction<number>>;
-  spectralPeaksNew: SpectralPeaksType;
-  setSpectralPeaksNew: Dispatch<SetStateAction<SpectralPeaksType>>;
-  spectralPeaks: {
-    peakWavelength1: number;
-    peakWavelength2: number;
-    peakWavelength3: number;
-    peakWavelength4: number;
-  };
-  setSpectralPeaks: Dispatch<SetStateAction<{
-    peakWavelength1: number;
-    peakWavelength2: number;
-    peakWavelength3: number;
-    peakWavelength4: number;
-  }>>;
-  activeCones: {
-    isCone1Active: boolean;
-    isCone2Active: boolean;
-    isCone3Active: boolean;
-    isCone4Active: boolean;
-  };
-  setActiveCones: Dispatch<SetStateAction<{
-    isCone1Active: boolean;
-    isCone2Active: boolean;
-    isCone3Active: boolean;
-    isCone4Active: boolean;
-  }>>;
   sliceDimension: number;
   setSliceDimension: Dispatch<SetStateAction<number>>;
   submitSwitch: number;
@@ -127,31 +83,17 @@ type AppContextType = {
     min: number;
     max: number;
   }>>;
-  coneResponses: {
-    coneResponse1: Array<number>;
-    coneResponse2: Array<number>;
-    coneResponse3: Array<number>;
-    coneResponse4: Array<number>;
-  };
-  setConeResponses: Dispatch<SetStateAction<{
-    coneResponse1: Array<number>;
-    coneResponse2: Array<number>;
-    coneResponse3: Array<number>;
-    coneResponse4: Array<number>;
-  }>>;
-  wavelengths: Array<number>;
-  setWavelengths: Dispatch<SetStateAction<Array<number>>>;
   sliceVisible: boolean;
   setSliceVisible: Dispatch<SetStateAction<boolean>>;
   sliceSwitch: number;
   setSliceSwitch: Dispatch<SetStateAction<number>>;
   slicePlane: Plane;
-  setSlicePlane: Dispatch<SetStateAction<Plane>>;  // It'll only have a, b, c changed based on rotation (d is fixed per OCS)  
+  setSlicePlane: Dispatch<SetStateAction<Plane>>;
   fetchTrigger: boolean;
   setFetchTrigger: Dispatch<SetStateAction<boolean>>;
-  ocsDataArray: OCSData[]; // State for array of OCSData structs
+  ocsDataArray: OCSData[];
   setOcsDataArray: Dispatch<SetStateAction<OCSData[]>>;
-  entries: OCSContext[];    // Entries of OCSContext
+  entries: OCSContext[];
   setEntries: Dispatch<SetStateAction<OCSContext[]>>;
   selectedEntryIndex: number | null;
   setSelectedEntryIndex: Dispatch<SetStateAction<number | null>>;
@@ -171,27 +113,6 @@ const MAX_VISIBLE_WAVELENGTH = 700;
 // Context provider component
 export const AppContextProvider = ({ children }: { children: ReactNode }) => {
   const [spectralDB, setSpectralDB] = useState<SpectralDB>({});
-  const [omitBetaBand, setOmitBetaBand] = useState(true);
-  const [isMaxBasis, setIsMaxBasis] = useState(false);
-  const [wavelengthSampleResolution, setWavelengthSampleResolution] = useState(20);
-  const [spectralPeaks, setSpectralPeaks] = useState({
-    peakWavelength1: DEFAULT_S_PEAK,
-    peakWavelength2: DEFAULT_M_PEAK,
-    peakWavelength3: DEFAULT_L_PEAK,
-    peakWavelength4: DEFAULT_Q_PEAK,
-  });
-  const [spectralPeaksNew, setSpectralPeaksNew] = useState<SpectralPeaksType>({
-    peak1: { peak: DEFAULT_S_PEAK, isActive: true },
-    peak2: { peak: DEFAULT_M_PEAK, isActive: true },
-    peak3: { peak: DEFAULT_L_PEAK, isActive: true },
-    peak4: { peak: DEFAULT_Q_PEAK, isActive: false },
-  });
-  const [activeCones, setActiveCones] = useState({
-    isCone1Active: true,
-    isCone2Active: true,
-    isCone3Active: true,
-    isCone4Active: false,
-  });
   const [sliceDimension, setSliceDimension] = useState(2);
   const [coneResponseType, setConeResponseType] = useState("Human Tetrachromat");
   const [submitSwitch, setSubmitSwitch] = useState(1);
@@ -199,13 +120,6 @@ export const AppContextProvider = ({ children }: { children: ReactNode }) => {
   const [wavelengthBounds, setWavelengthBounds] = useState({
     min: MIN_VISIBLE_WAVELENGTH,
     max: MAX_VISIBLE_WAVELENGTH,
-  });
-  const [wavelengths, setWavelengths] = useState([0]);
-  const [coneResponses, setConeResponses] = useState({
-    coneResponse1: [0],
-    coneResponse2: [0],
-    coneResponse3: [0],
-    coneResponse4: [0],
   });
   const [sliceVisible, setSliceVisible] = useState(false);
   const [sliceSwitch, setSliceSwitch] = useState(0);
@@ -222,18 +136,6 @@ export const AppContextProvider = ({ children }: { children: ReactNode }) => {
         width,
         spectralDB,
         setSpectralDB,
-        omitBetaBand,
-        setOmitBetaBand,
-        isMaxBasis,
-        setIsMaxBasis,
-        wavelengthSampleResolution,
-        setWavelengthSampleResolution,
-        spectralPeaks,
-        setSpectralPeaks,
-        spectralPeaksNew,
-        setSpectralPeaksNew,
-        activeCones,
-        setActiveCones,
         sliceDimension,
         setSliceDimension,
         coneResponseType,
@@ -242,10 +144,6 @@ export const AppContextProvider = ({ children }: { children: ReactNode }) => {
         setSubmitSwitch,
         wavelengthBounds,
         setWavelengthBounds,
-        wavelengths,
-        setWavelengths,
-        coneResponses,
-        setConeResponses,
         sliceVisible,
         setSliceVisible,
         sliceSwitch,

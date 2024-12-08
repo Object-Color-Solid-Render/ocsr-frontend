@@ -205,8 +205,6 @@ export default function ObjectColorSolid() {
     setFetchTrigger,
     entries,
     setEntries,
-    setConeResponses,
-    setWavelengths,
     sliceDimension,
     sliceVisible,
     setSliceVisible,
@@ -295,9 +293,6 @@ export default function ObjectColorSolid() {
         });
 
         setOcsDataArray(newOcsDataArray); // Use context's setOcsDataArray
-        // Update wavelengths and cone responses if needed
-        setWavelengths(newOcsDataArray[0].wavelengths);
-        setConeResponses(newOcsDataArray[0].coneResponses);
       })
       .catch(error => {
         console.error('Error fetching data:', error);
@@ -308,7 +303,7 @@ export default function ObjectColorSolid() {
         setFetchTrigger(false);
         setLoading(false); // Set loading to false when fetching ends
       });
-  }, [fetchTrigger, entries, setConeResponses, setWavelengths, setFetchTrigger, setOcsDataArray]);
+  }, [fetchTrigger, entries, setFetchTrigger, setOcsDataArray]);
 
   // Handle drag to rotate geometries
   const bind = useDrag(({ movement: [mx, my], memo = rotationMatrix, dragging }) => {
