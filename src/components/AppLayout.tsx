@@ -9,6 +9,8 @@ import ObjectColorSolid, { EntryParams } from './ObjectColorSolid';
 import SliceDisplay from './SliceDisplay/SliceDisplay';
 import GraphDisplay from './GraphDisplay/GraphDisplay';
 import SpectraInputs from './GraphDisplay/SpectraInputs';
+import { EntryParams } from './GraphDisplay/SpectraInputs';
+
 import {
   createContext,
   Dispatch,
@@ -144,6 +146,12 @@ type AppContextType = {
   setFetchTrigger: Dispatch<SetStateAction<boolean>>;
   entries: EntryParams[];
   setEntries: Dispatch<SetStateAction<EntryParams[]>>;
+  selectedEntryIndex: number | null;
+  setSelectedEntryIndex: Dispatch<SetStateAction<number | null>>;
+  wavelengthsArray: number[][];
+  setWavelengthsArray: Dispatch<SetStateAction<number[][]>>;
+  coneResponsesArray: any[];
+  setConeResponsesArray: Dispatch<SetStateAction<any[]>>;
 };
 
 // Create context
@@ -201,6 +209,9 @@ export const AppContextProvider = ({ children }: { children: ReactNode }) => {
   const [slicePlane, setSlicePlane] = useState({a: 0, b: 0, c: 0, d: 0});
   const [fetchTrigger, setFetchTrigger] = useState(false);
   const [entries, setEntries] = useState<EntryParams[]>([]);
+  const [selectedEntryIndex, setSelectedEntryIndex] = useState<number | null>(null);
+  const [wavelengthsArray, setWavelengthsArray] = useState<number[][]>([]);
+  const [coneResponsesArray, setConeResponsesArray] = useState<any[]>([]);
 
   return (
     <AppContext.Provider
@@ -243,6 +254,12 @@ export const AppContextProvider = ({ children }: { children: ReactNode }) => {
         setFetchTrigger,
         entries,
         setEntries,
+        selectedEntryIndex,
+        setSelectedEntryIndex,
+        wavelengthsArray,
+        setWavelengthsArray,
+        coneResponsesArray,
+        setConeResponsesArray,
       }}
     >
       {children}

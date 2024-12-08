@@ -12,7 +12,7 @@ const boxStyle = {
 };
 
 // Create chart data from wavelengths and coneResponses
-const createChartData = (wavelengths, coneResponses) => {
+const createChartData = (wavelengths: number[], coneResponses: any) => {
     return wavelengths.map((wavelength, index) => ({
       wavelength,  // X-axis value
       sResponse: coneResponses.coneResponse1[index], // Y-value for S Cone
@@ -24,8 +24,12 @@ const createChartData = (wavelengths, coneResponses) => {
 
 export default function GraphDisplay() {
     const [open, setOpen] = useState(false);
-    const { wavelengths, coneResponses } = useAppContext();
-    // TODO: Make sure to add a width parameter so we can change what the graph shows    
+    const { wavelengthsArray, coneResponsesArray, selectedEntryIndex } = useAppContext();
+
+    const selectedIndex = selectedEntryIndex !== null ? selectedEntryIndex : 0;
+    const wavelengths = wavelengthsArray[selectedIndex] || [];
+    const coneResponses = coneResponsesArray[selectedIndex] || {};
+
     const data = createChartData(wavelengths, coneResponses);
     
     return (
