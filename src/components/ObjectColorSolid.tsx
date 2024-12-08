@@ -36,11 +36,18 @@ export function CustomMesh({ geometry, vertexShader, fragmentShader, center, rot
   material.vertexShader = vertexShader;
   material.fragmentShader = fragmentShader;
 
+  useEffect(() => {
+    if (meshRef.current) {
+      meshRef.current.matrixAutoUpdate = false;
+      meshRef.current.matrix.copy(rotationMatrix);
+      meshRef.current.updateMatrixWorld(true);
+    }
+  }, [rotationMatrix]);
+
   useFrame(() => {
     if (meshRef.current) {
       // Update uniform color over time
       material.uniforms.col.value.setHSL(clock.getElapsedTime() % 1, 1, 0.5);
-      meshRef.current.matrix.copy(rotationMatrix);
     }
   });
 
@@ -220,9 +227,11 @@ export default function ObjectColorSolid() {
   }, [fetchTrigger, entries, setConeResponses, setWavelengths, setFetchTrigger]);
 
   // Handle drag to rotate geometries
-  const bind = useDrag(({ movement: [mx, my], memo = rotationMatrix }) => {
-    const rotation = new THREE.Matrix4().makeRotationFromEuler(new THREE.Euler(my * 0.01, mx * 0.01, 0));
-    setRotationMatrix(rotation.multiply(memo));
+  const bind = useDrag(({ movement: [mx, my], memo = rotationMatrix, dragging }) => {
+    if (dragging) {
+      const rotation = new THREE.Matrix4().makeRotationFromEuler(new THREE.Euler(my * 0.01, mx * 0.01, 0));
+      setRotationMatrix(rotation.multiply(memo));
+    }
     return memo;
   });
 
@@ -242,28 +251,17 @@ export default function ObjectColorSolid() {
       <Canvas
         orthographic
         camera={{
-          position: [2.15, 1.5, 2.0],
+          position: [0, 0, 3.0],
           zoom: 1,
           near: 0.001,
           far: 10000,
-          top: 4,
-          bottom: -4,
-          left: window.innerWidth / window.innerHeight * -4,
-          right: window.innerWidth / window.innerHeight * 4,
+          top: 8,
+          bottom: -8,
+          left: window.innerWidth / window.innerHeight * -8,
+          right: window.innerWidth / window.innerHeight * 8,
         }}
-        onMouseMove={e => {
-          // Update the Y position of the slice based on mouse movement
-          const [smallestY, largestY] = [-0.3, 0.3];
-          const y = (-(e.clientY / window.innerHeight) * 2 + 1) * 0.7;
-          setPositionY(Math.min(largestY, Math.max(smallestY, y)));
-        }}
-        onPointerDown={() => {
-          // Toggle slice visibility on pointer down
-          if (sliceVisible) {
-            setSliceVisible(false);
-            setSliceSwitch(sliceSwitch + 1);
-          }
-        }}
+        onPointerDown={() => setDragging(true)}
+        onPointerUp={() => setDragging(false)}
       >
         <UpdateCamera />
         {sliceDimension === 2 && sliceVisible && <MovingYSlice />}
@@ -277,7 +275,7 @@ export default function ObjectColorSolid() {
             rotationMatrix={rotationMatrix}
           />
         ))}
-        <OrbitControls target={[0, 0, 0]} />
+        {/* Remove OrbitControls to prevent camera rotation */}
         <axesHelper args={[5]} />
       </Canvas>
     </div>
