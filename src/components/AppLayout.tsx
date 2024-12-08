@@ -262,7 +262,7 @@ export default function AppLayout() {
       {/* Main content */}
       <AppShell.Main>
         <Container my="xl" fluid>
-          <div style={{ position: "absolute", width: "100%", height: "100%", display: "flex", justifyContent: "center", alignItems: "center", zIndex: 1 }}>
+          <div style={{ position: "absolute", width: "95%", height: "80%", display: "flex", justifyContent: "center", alignItems: "center", zIndex: 1 }}>
             <ObjectColorSolid />
           </div>
           <Grid>
