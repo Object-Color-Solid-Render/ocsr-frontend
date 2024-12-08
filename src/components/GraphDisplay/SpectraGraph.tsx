@@ -28,6 +28,8 @@ export default function GraphDisplay() {
 
     const selectedIndex = selectedEntryIndex !== null ? selectedEntryIndex : 0;
     const ocsData = ocsDataArray[selectedIndex];
+    console.log("selected index:", selectedIndex);
+    console.log("ocs data:", ocsData);
 
     const data = ocsData ? createChartData(ocsData.wavelengths, ocsData.coneResponses) : [];
     

@@ -195,7 +195,6 @@ export const getGridPositions = (dataArray: OcsData[]) => {
 
 // Main component to render the Object Color Solid
 export default function ObjectColorSolid() {
-  const [ocsDataArray, setOcsDataArray] = useState<OCSData[]>([]); // Changed to array to handle multiple geometries
   const [rotationMatrix, setRotationMatrix] = useState(new THREE.Matrix4());
   const [dragging, setDragging] = useState(false);
   const [loading, setLoading] = useState(false); // State to manage loading
@@ -213,6 +212,8 @@ export default function ObjectColorSolid() {
     setSliceVisible,
     sliceSwitch,
     setSliceSwitch,
+    ocsDataArray,     // Get ocsDataArray from context
+    setOcsDataArray,  // Get setOcsDataArray from context
   } = useAppContext();
 
   // Add a default entry on component mount
@@ -293,7 +294,7 @@ export default function ObjectColorSolid() {
           } as OCSData;
         });
 
-        setOcsDataArray(newOcsDataArray);
+        setOcsDataArray(newOcsDataArray); // Use context's setOcsDataArray
         // Update wavelengths and cone responses if needed
         setWavelengths(newOcsDataArray[0].wavelengths);
         setConeResponses(newOcsDataArray[0].coneResponses);
@@ -307,7 +308,7 @@ export default function ObjectColorSolid() {
         setFetchTrigger(false);
         setLoading(false); // Set loading to false when fetching ends
       });
-  }, [fetchTrigger, entries, setConeResponses, setWavelengths, setFetchTrigger]);
+  }, [fetchTrigger, entries, setConeResponses, setWavelengths, setFetchTrigger, setOcsDataArray]);
 
   // Handle drag to rotate geometries
   const bind = useDrag(({ movement: [mx, my], memo = rotationMatrix, dragging }) => {
