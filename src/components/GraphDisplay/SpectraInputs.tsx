@@ -46,29 +46,31 @@ export default function SpectraInputs() {
     }
   }, [spectralDB]);
 
-  // Add a default entry on component mount
+  // Add a default entry if entries are empty
   useEffect(() => {
-    const defaultEntry: EntryParams = {
-      wavelengthBounds: { min: 390, max: 700 },
-      omitBetaBand: true,
-      isMaxBasis: false,
-      wavelengthSampleResolution: 20,
-      spectralPeaks: {
-        peakWavelength1: 455,
-        peakWavelength2: 543,
-        peakWavelength3: 566,
-        peakWavelength4: 560,
-      },
-      activeCones: {
-        isCone1Active: true,
-        isCone2Active: true,
-        isCone3Active: true,
-        isCone4Active: false,
-      },
-      selectedSpecies: null,
-    };
-    setEntries([defaultEntry]);
-  }, [setEntries]);
+    if (entries.length === 0) {
+      const defaultEntry: EntryParams = {
+        wavelengthBounds: { min: 390, max: 700 },
+        omitBetaBand: true,
+        isMaxBasis: false,
+        wavelengthSampleResolution: 20,
+        spectralPeaks: {
+          peakWavelength1: 455,
+          peakWavelength2: 543,
+          peakWavelength3: 566,
+          peakWavelength4: 560,
+        },
+        activeCones: {
+          isCone1Active: true,
+          isCone2Active: true,
+          isCone3Active: true,
+          isCone4Active: false,
+        },
+        selectedSpecies: null,
+      };
+      setEntries([defaultEntry]);
+    }
+  }, [entries, setEntries]);
 
   // Handle changes to spectral peaks
   const handleSpectralPeaksChange = (
