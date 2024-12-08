@@ -355,6 +355,7 @@ export default function AppLayout() {
         padding="xl"
         size="md"
         position="right"
+        style={{ marginRight: '100px'}}
       >
         <SpectraInputs />
       </Drawer>

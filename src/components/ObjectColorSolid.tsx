@@ -31,7 +31,7 @@ type CustomMeshProps = {
 export function CustomMesh({ geometry, vertexShader, fragmentShader, center, rotationMatrix, index }: CustomMeshProps & { rotationMatrix: THREE.Matrix4 }) {
   const meshRef = useRef<THREE.Mesh>();
   const { clock } = useThree();
-  const { setSelectedEntryIndex } = useAppContext();
+  const { setSelectedEntryIndex, sliceDimension, sliceVisible } = useAppContext();
 
   // Create material instance and set shaders
   const material = new CustomShaderMaterial();
@@ -45,11 +45,18 @@ export function CustomMesh({ geometry, vertexShader, fragmentShader, center, rot
       meshRef.current.updateMatrixWorld(true);
     }
   }, [rotationMatrix]);
+
+  const _basePosition = new THREE.Vector3();
+  const baseQuaternion = new THREE.Quaternion();
+  const _baseScale = new THREE.Vector3();
+
+  rotationMatrix.decompose(_basePosition, baseQuaternion, _baseScale);
+
   return (
     <group position={center}>
       <mesh
         ref={meshRef}
-        scale={0.5}
+        scale={1}
         geometry={geometry}
         material={material}
         onClick={(event) => {
@@ -58,9 +65,12 @@ export function CustomMesh({ geometry, vertexShader, fragmentShader, center, rot
         }}
       />
       <axesHelper args={[1]} />
+      {sliceDimension === 2 && sliceVisible && <MovingPlane baseQuaternion={baseQuaternion}></MovingPlane>}
     </group>
   );
 }
+
+
 
 // Type definitions for data structures
 export type OcsData = {
@@ -88,9 +98,8 @@ export type EntryParams = {
   };
 };
 
-function MovingPlane() {
+function MovingPlane( { baseQuaternion }: { baseQuaternion: THREE.Quaternion }) {
   const planeRef = useRef();
-  const { viewport } = useThree(); // Get the viewport dimensions
   const normalRef = useRef(new THREE.Vector3(-1, 1, 0).normalize()); // Initial normal vector
   const { slicePlane, setSlicePlane } = useAppContext()
 
@@ -116,16 +125,16 @@ function MovingPlane() {
       const rotationAxis = new THREE.Vector3(1, 1, 1).normalize(); // Axis of rotation
       const angle = mouse.x * Math.PI * 2; // Map mouse X to rotation angle (adjust factor for sensitivity)
 
-      // Create a quaternion for rotation around the axis
+      // Create a quaternion for rotation around the axis. to apply to the current normal
       const rotationQuaternion = new THREE.Quaternion();
       rotationQuaternion.setFromAxisAngle(rotationAxis, angle);
 
       // Rotate the normal vector
       const rotatedNormal = normalRef.current.clone().applyQuaternion(rotationQuaternion).normalize();
 
-      // Align the plane's normal to the rotated normal
-      const quaternion = new THREE.Quaternion();
-      quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, 1), rotatedNormal);
+      // Align the plane's default normal (0, 0, 1) to the rotated normal
+      const dynamicQuaternion = new THREE.Quaternion();
+      dynamicQuaternion.setFromUnitVectors(new THREE.Vector3(0, 0, 1), rotatedNormal);
       setSlicePlane({
         a: rotatedNormal.x,
         b: rotatedNormal.y,
@@ -133,7 +142,9 @@ function MovingPlane() {
         d: slicePlane.d
       })
 
-      planeRef.current.quaternion.copy(quaternion);
+      const combinedQuaternion = baseQuaternion.clone().multiply(dynamicQuaternion)
+      
+      planeRef.current.quaternion.copy(combinedQuaternion);
     }
   });
 
@@ -151,7 +162,7 @@ function MovingPlane() {
 }
 
 // Component to update the camera on resize
-function UpdateCamera() {
+export function UpdateCamera() {
   const { camera, size } = useThree();
 
   useEffect(() => {
@@ -167,6 +178,19 @@ function UpdateCamera() {
   }, [camera, size]);
 
   return null;
+}
+
+// Calculate grid positions for geometries
+export const getGridPositions = (dataArray: OcsData[]) => { 
+  return dataArray.map((_, index) => {
+      const cols = Math.ceil(Math.sqrt(dataArray.length));
+      const rows = Math.ceil(dataArray.length / cols);
+      const col = index % cols;
+      const row = Math.floor(index / cols);
+      return [(col - (cols - 1) / 2) * 1.5, (row - (rows - 1) / 2) * 1.5, 0];
+    });
+
+
 }
 
 // Main component to render the Object Color Solid
@@ -310,14 +334,7 @@ export default function ObjectColorSolid() {
     return memo;
   });
 
-  // Calculate grid positions for geometries
-  const gridPositions = ocsDataArray.map((_, index) => {
-    const cols = Math.ceil(Math.sqrt(ocsDataArray.length));
-    const rows = Math.ceil(ocsDataArray.length / cols);
-    const col = index % cols;
-    const row = Math.floor(index / cols);
-    return [(col - (cols - 1) / 2) * 1.5, (row - (rows - 1) / 2) * 1.5, 0];
-  });
+  const gridPositions = getGridPositions(ocsDataArray)
 
   return (
     <div {...bind()} style={{ width: '100%', height: '100%', position: 'relative' }}>
@@ -372,11 +389,10 @@ export default function ObjectColorSolid() {
         onPointerUp={() => setDragging(false)}
       >
         <UpdateCamera />
-        {sliceDimension === 2 && sliceVisible && <MovingPlane></MovingPlane>}
         {ocsDataArray.map((ocsData, index) => (
           <CustomMesh
-            key={index}
-            index={index}
+            key={index} // FIXME: shouldn't generally be an index
+            index={index} 
             geometry={ocsData.geometry}
             vertexShader={ocsData.vertexShader}
             fragmentShader={ocsData.fragmentShader}
