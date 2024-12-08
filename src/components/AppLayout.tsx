@@ -15,6 +15,7 @@ import SpectraInputs from './GraphDisplay/SpectraInputs';
 import { OCSContext, OCSData } from './OCSContext';
 import { IconMenu2 } from '@tabler/icons-react'; // Added import
 import { Link } from 'react-router-dom'; // Added import
+import { useDisclosure } from '@mantine/hooks'; // Add this import
 
 import {
   createContext,
@@ -178,7 +179,7 @@ export const useAppContext = (): AppContextType => {
 export default function AppLayout() {
   const theme = useMantineTheme();
   const { setSpectralDB } = useAppContext();
-  const [drawerOpened, setDrawerOpened] = useState(false); // Added state for Drawer
+  const [sidebarOpened, setSidebarOpened] = useState(false);
 
   // Fetch spectral database on mount
   useEffect(() => {
@@ -211,7 +212,16 @@ export default function AppLayout() {
   }, [setSpectralDB]);
 
   return (
-    <AppShell header={{ height: 50 }} padding="sm">
+    <AppShell
+      header={{ height: 50 }}
+      padding="sm"
+      layout="alt"
+      aside={{  // Change from navbar to aside
+        width: 300,
+        breakpoint: 'sm',
+        collapsed: { mobile: !sidebarOpened, desktop: !sidebarOpened },
+      }}
+    >
       {/* Header with title */}
       <AppShell.Header style={{ backgroundColor: '#F5F5F5', color: "black", display: "flex", alignItems: "center", justifyContent: "space-between", paddingRight: "2%", paddingLeft: "2%"}}>
         <img src={ocstudioLogo} alt="OCStudio Logo" style={{ height: '95%' }} />
@@ -234,24 +244,20 @@ export default function AppLayout() {
           >
             About Us
           </Button>
-          <ActionIcon variant="subtle" onClick={() => setDrawerOpened(true)}>
+          <ActionIcon 
+            variant="subtle" 
+            onClick={() => setSidebarOpened(prev => !prev)}
+            color={sidebarOpened ? 'blue' : 'gray'}
+          >
             <IconMenu2 size={18}/>
           </ActionIcon>
         </div>
       </AppShell.Header>
 
-      {/* Drawer overlay for entry edits */}
-      <Drawer
-        opened={drawerOpened}
-        onClose={() => setDrawerOpened(false)}
-        title="Edit Entries"
-        padding="xl"
-        size="md"
-        position="right"
-        style={{ marginRight: '100px'}}
-      >
+      {/* Change Navbar to Aside */}
+      <AppShell.Aside p="md">
         <SpectraInputs />
-      </Drawer>
+      </AppShell.Aside>
 
       {/* Main content */}
       <AppShell.Main>
