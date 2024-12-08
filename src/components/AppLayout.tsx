@@ -9,6 +9,8 @@ import ObjectColorSolid from './ObjectColorSolid';
 import SliceDisplay from './SliceDisplay/SliceDisplay';
 import GraphDisplay from './GraphDisplay/GraphDisplay';
 import SpectraInputs from './GraphDisplay/SpectraInputs';
+import { EntryParams } from './GraphDisplay/SpectraInputs';
+
 import {
   createContext,
   Dispatch,

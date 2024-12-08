@@ -66,25 +66,6 @@ export type OcsData = {
   fragmentShader: string;
 };
 
-export type EntryParams = {
-  wavelengthBounds: { min: number; max: number };
-  omitBetaBand: boolean;
-  isMaxBasis: boolean;
-  wavelengthSampleResolution: number;
-  spectralPeaks: {
-    peakWavelength1: number;
-    peakWavelength2: number;
-    peakWavelength3: number;
-    peakWavelength4: number;
-  };
-  activeCones: {
-    isCone1Active: boolean;
-    isCone2Active: boolean;
-    isCone3Active: boolean;
-    isCone4Active: boolean;
-  };
-};
-
 // Component to implement the moving Y slice
 function MovingYSlice() {
   const sliceRef = useRef<THREE.Mesh>();
