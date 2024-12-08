@@ -5,7 +5,7 @@ import {
   useMantineTheme,
   Title,
 } from '@mantine/core';
-import ObjectColorSolid, { EntryParams } from './ObjectColorSolid';
+import ObjectColorSolid from './ObjectColorSolid';
 import SliceDisplay from './SliceDisplay/SliceDisplay';
 import GraphDisplay from './GraphDisplay/GraphDisplay';
 import SpectraInputs from './GraphDisplay/SpectraInputs';
