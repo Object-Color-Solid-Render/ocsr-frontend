@@ -24,13 +24,12 @@ const createChartData = (wavelengths: number[], coneResponses: any) => {
 
 export default function GraphDisplay() {
     const [open, setOpen] = useState(false);
-    const { wavelengthsArray, coneResponsesArray, selectedEntryIndex } = useAppContext();
+    const { ocsDataArray, selectedEntryIndex } = useAppContext();
 
     const selectedIndex = selectedEntryIndex !== null ? selectedEntryIndex : 0;
-    const wavelengths = wavelengthsArray[selectedIndex] || [];
-    const coneResponses = coneResponsesArray[selectedIndex] || {};
+    const ocsData = ocsDataArray[selectedIndex];
 
-    const data = createChartData(wavelengths, coneResponses);
+    const data = ocsData ? createChartData(ocsData.wavelengths, ocsData.coneResponses) : [];
     
     return (
         <div>

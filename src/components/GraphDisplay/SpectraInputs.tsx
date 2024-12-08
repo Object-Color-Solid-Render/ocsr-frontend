@@ -15,9 +15,10 @@ import {
 import { useState, useEffect } from 'react';
 import { useAppContext } from '../AppLayout';
 import { IconEdit, IconTrash, IconChevronUp, IconChevronDown } from '@tabler/icons-react';
+import { OCSContext } from '../OCSContext';
 
 // Type definitions
-export type EntryParams = {
+export type OCSContext = {
   wavelengthBounds: { min: number; max: number };
   omitBetaBand: boolean;
   isMaxBasis: boolean;
@@ -56,7 +57,7 @@ export default function SpectraInputs() {
   // Add a default entry if entries are empty
   useEffect(() => {
     if (entries.length === 0) {
-      const defaultEntry: EntryParams = {
+      const defaultEntry: OCSContext = {
         wavelengthBounds: { min: 390, max: 700 },
         omitBetaBand: true,
         isMaxBasis: false,
@@ -82,7 +83,7 @@ export default function SpectraInputs() {
 
   // Handle changes to spectral peaks
   const handleSpectralPeaksChange = (
-    name: keyof EntryParams['spectralPeaks'],
+    name: keyof OCSContext['spectralPeaks'],
     value: number,
     index: number
   ) => {
@@ -95,7 +96,7 @@ export default function SpectraInputs() {
 
   // Handle toggling of active cones
   const handleActiveConesChange = (
-    name: keyof EntryParams['activeCones'],
+    name: keyof OCSContext['activeCones'],
     index: number
   ) => {
     setEntries(prev => {
@@ -313,12 +314,12 @@ export default function SpectraInputs() {
                     <Slider
                       value={
                         entry.spectralPeaks[
-                          `peakWavelength${coneIndex + 1}` as keyof EntryParams['spectralPeaks']
+                          `peakWavelength${coneIndex + 1}` as keyof OCSContext['spectralPeaks']
                         ]
                       }
                       onChange={value =>
                         handleSpectralPeaksChange(
-                          `peakWavelength${coneIndex + 1}` as keyof EntryParams['spectralPeaks'],
+                          `peakWavelength${coneIndex + 1}` as keyof OCSContext['spectralPeaks'],
                           value,
                           index
                         )

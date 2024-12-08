@@ -12,7 +12,7 @@ import ObjectColorSolid from './ObjectColorSolid';
 import SliceDisplay from './SliceDisplay/SliceDisplay';
 import GraphDisplay from './GraphDisplay/GraphDisplay';
 import SpectraInputs from './GraphDisplay/SpectraInputs';
-import { EntryParams } from './GraphDisplay/SpectraInputs';
+import { OCSContext, OCSData } from './OCSContext';
 import { IconMenu2 } from '@tabler/icons-react'; // Added import
 import { Link } from 'react-router-dom'; // Added import
 
@@ -149,14 +149,12 @@ type AppContextType = {
   setSlicePlane: Dispatch<SetStateAction<Plane>>;  // It'll only have a, b, c changed based on rotation (d is fixed per OCS)  
   fetchTrigger: boolean;
   setFetchTrigger: Dispatch<SetStateAction<boolean>>;
-  entries: EntryParams[];
-  setEntries: Dispatch<SetStateAction<EntryParams[]>>;
+  ocsDataArray: OCSData[]; // State for array of OCSData structs
+  setOcsDataArray: Dispatch<SetStateAction<OCSData[]>>;
+  entries: OCSContext[];    // Entries of OCSContext
+  setEntries: Dispatch<SetStateAction<OCSContext[]>>;
   selectedEntryIndex: number | null;
   setSelectedEntryIndex: Dispatch<SetStateAction<number | null>>;
-  wavelengthsArray: number[][];
-  setWavelengthsArray: Dispatch<SetStateAction<number[][]>>;
-  coneResponsesArray: any[];
-  setConeResponsesArray: Dispatch<SetStateAction<any[]>>;
 };
 
 // Create context
@@ -213,10 +211,9 @@ export const AppContextProvider = ({ children }: { children: ReactNode }) => {
   const [sliceSwitch, setSliceSwitch] = useState(0);
   const [slicePlane, setSlicePlane] = useState({a: 0, b: 0, c: 0, d: 0});
   const [fetchTrigger, setFetchTrigger] = useState(false);
-  const [entries, setEntries] = useState<EntryParams[]>([]);
+  const [ocsDataArray, setOcsDataArray] = useState<OCSData[]>([]); // State for OCSData
+  const [entries, setEntries] = useState<OCSContext[]>([]);        // Entries of OCSContext
   const [selectedEntryIndex, setSelectedEntryIndex] = useState<number | null>(null);
-  const [wavelengthsArray, setWavelengthsArray] = useState<number[][]>([]);
-  const [coneResponsesArray, setConeResponsesArray] = useState<any[]>([]);
 
   return (
     <AppContext.Provider
@@ -257,14 +254,12 @@ export const AppContextProvider = ({ children }: { children: ReactNode }) => {
         setSlicePlane,
         fetchTrigger,
         setFetchTrigger,
+        ocsDataArray,
+        setOcsDataArray,
         entries,
         setEntries,
         selectedEntryIndex,
         setSelectedEntryIndex,
-        wavelengthsArray,
-        setWavelengthsArray,
-        coneResponsesArray,
-        setConeResponsesArray,
       }}
     >
       {children}

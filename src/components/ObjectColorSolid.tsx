@@ -4,7 +4,7 @@ import { OrbitControls, shaderMaterial } from '@react-three/drei';
 import * as THREE from 'three';
 import { useAppContext } from './AppLayout';
 import { Button, Loader, Modal } from '@mantine/core'; // Import Loader and Modal components from Mantine
-import { EntryParams } from './SpectraInputs'; // Ensure EntryParams is imported
+import { OCSContext, OCSData } from '../OCSContext';
 import { useDrag } from '@use-gesture/react';
 
 // Define custom shader material with uniforms
@@ -195,7 +195,7 @@ export const getGridPositions = (dataArray: OcsData[]) => {
 
 // Main component to render the Object Color Solid
 export default function ObjectColorSolid() {
-  const [ocsDataArray, setOcsDataArray] = useState<OcsData[]>([]); // Changed to array to handle multiple geometries
+  const [ocsDataArray, setOcsDataArray] = useState<OCSData[]>([]); // Changed to array to handle multiple geometries
   const [rotationMatrix, setRotationMatrix] = useState(new THREE.Matrix4());
   const [dragging, setDragging] = useState(false);
   const [loading, setLoading] = useState(false); // State to manage loading
@@ -213,8 +213,6 @@ export default function ObjectColorSolid() {
     setSliceVisible,
     sliceSwitch,
     setSliceSwitch,
-    setWavelengthsArray,
-    setConeResponsesArray,
   } = useAppContext();
 
   // Add a default entry on component mount
@@ -273,11 +271,7 @@ export default function ObjectColorSolid() {
         return response.json();
       })
       .then(dataArray => {
-        const newOcsDataArray = [];
-        const newWavelengthsArray = [];
-        const newConeResponsesArray = [];
-
-        dataArray.forEach((data: any, index: number) => {
+        const newOcsDataArray = dataArray.map((data: any) => {
           // Create geometry from fetched data
           const geometry = new THREE.BufferGeometry();
           geometry.setAttribute('position', new THREE.Float32BufferAttribute(data.vertices.flat(), 3));
@@ -285,34 +279,24 @@ export default function ObjectColorSolid() {
           geometry.setAttribute('color', new THREE.Float32BufferAttribute(data.colors.flat(), 3));
           geometry.setIndex(data.indices.flat());
 
-          newOcsDataArray.push({
+          return {
             geometry,
             vertexShader: data.vertexShader,
             fragmentShader: data.fragmentShader,
-          } as OcsData);
-
-          // Store wavelengths and cone responses per entry
-          newWavelengthsArray.push(data.wavelengths.flat());
-          newConeResponsesArray.push({
-            coneResponse1: data.s_response.flat(),
-            coneResponse2: data.m_response.flat(),
-            coneResponse3: data.l_response.flat(),
-            coneResponse4: data.q_response.flat(),
-          });
+            wavelengths: data.wavelengths.flat(),
+            coneResponses: {
+              coneResponse1: data.s_response.flat(),
+              coneResponse2: data.m_response.flat(),
+              coneResponse3: data.l_response.flat(),
+              coneResponse4: data.q_response.flat(),
+            },
+          } as OCSData;
         });
 
         setOcsDataArray(newOcsDataArray);
-        setWavelengthsArray(newWavelengthsArray);
-        setConeResponsesArray(newConeResponsesArray);
         // Update wavelengths and cone responses if needed
-        // Assuming dataArray[0] has the required data
-        setWavelengths(dataArray[0].wavelengths.flat());
-        setConeResponses({
-          coneResponse1: dataArray[0].s_response.flat(),
-          coneResponse2: dataArray[0].m_response.flat(),
-          coneResponse3: dataArray[0].l_response.flat(),
-          coneResponse4: dataArray[0].q_response.flat(),
-        });
+        setWavelengths(newOcsDataArray[0].wavelengths);
+        setConeResponses(newOcsDataArray[0].coneResponses);
       })
       .catch(error => {
         console.error('Error fetching data:', error);
@@ -323,7 +307,7 @@ export default function ObjectColorSolid() {
         setFetchTrigger(false);
         setLoading(false); // Set loading to false when fetching ends
       });
-  }, [fetchTrigger, entries, setConeResponses, setWavelengths, setFetchTrigger, setWavelengthsArray, setConeResponsesArray]);
+  }, [fetchTrigger, entries, setConeResponses, setWavelengths, setFetchTrigger]);
 
   // Handle drag to rotate geometries
   const bind = useDrag(({ movement: [mx, my], memo = rotationMatrix, dragging }) => {
