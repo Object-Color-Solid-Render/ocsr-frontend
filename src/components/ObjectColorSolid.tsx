@@ -11,7 +11,7 @@ import { useDrag } from '@use-gesture/react';
 const CustomShaderMaterial = shaderMaterial(
   { col: new THREE.Color(0xff00ff) }, // Uniforms
   '',  // Vertex shader placeholder
-  ''   // Fragment shader placeholder
+  '',   // Fragment shader placeholder
 );
 
 // Extend to make the material available in JSX
@@ -38,6 +38,7 @@ export function CustomMesh({ geometry, vertexShader, fragmentShader, center, rot
   const material = new CustomShaderMaterial();
   material.vertexShader = vertexShader;
   material.fragmentShader = fragmentShader;
+  material.side = THREE.DoubleSide;
 
   useEffect(() => {
     if (meshRef.current) {

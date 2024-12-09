@@ -404,6 +404,23 @@ const handleMouseUpHeight = () => {
       </AppShell.Aside>
 
       {/* Main content */}
+<<<<<<< HEAD
+      <AppShell.Main>
+        <Container my="xl" fluid>
+          <div style={{ position: "absolute", width: "80%", height: "80%", display: "flex", justifyContent: "center", alignItems: "center", zIndex: 1 }}>
+            <ObjectColorSolid />
+          </div>
+          <Grid>
+            <Grid.Col span={1} style={{ zIndex: 2 }}>
+              <SliceDisplay />
+            </Grid.Col>
+            <Grid.Col span={10} style={{ position: 'relative' }}></Grid.Col>
+            <Grid.Col span={1} style={{ zIndex: 2 }}>
+              <GraphDisplay />
+            </Grid.Col>
+          </Grid>
+        </Container>
+=======
       <AppShell.Main style={{height: '100%'}}>
 
       <Container fluid style={{ display: 'flex', height: '100%' }}>
@@ -484,6 +501,7 @@ const handleMouseUpHeight = () => {
             {/* Additional Content Can Go Here */}
           </Box>
         </Container> 
+>>>>>>> 283a7551790c3ca7d50098ad9c72ab3991268ea2
       </AppShell.Main>
     </AppShell>
   );
