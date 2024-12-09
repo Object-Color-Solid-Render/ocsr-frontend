@@ -52,10 +52,9 @@ export default function GraphDisplay() {
                             offset={{ mainAxis: 50}}
                         /> */}
                         <Legend />
-                        <Line type="monotone" dataKey="sResponse" stroke="#8884d8" name="S Cone Response" />
-                        <Line type="monotone" dataKey="mResponse" stroke="#82ca9d" name="M Cone Response" />
-                        <Line type="monotone" dataKey="lResponse" stroke="#ff7300" name="L Cone Response" />
-                        <Line type="monotone" dataKey="qResponse" stroke="#gg9300" name="Q Cone Response" />
+                        <Line type="monotone" dataKey="sResponse" stroke="#8884d8" name="Smallest Peak Response" />
+                        <Line type="monotone" dataKey="mResponse" stroke="#82ca9d" name="Medium Peak Response" />
+                        <Line type="monotone" dataKey="lResponse" stroke="#ff7300" name="Largest Peak Response" />
                     </LineChart>
                 </ResponsiveContainer>
             </Card>
