@@ -18,6 +18,7 @@ export type OCSContext = {
     isCone4Active: boolean;
   };
   selectedSpecies: string | null;
+  entryName: string;
 };
 
 // Define the OCSData type to group data from backend

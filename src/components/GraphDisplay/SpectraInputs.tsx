@@ -201,7 +201,6 @@ export default function SpectraInputs() {
   const [dropdownOptions, setDropdownOptions] = useState<string[]>([]);
   const { entries, setEntries, spectralDB, submitSwitch, setSubmitSwitch, setFetchTrigger } = useAppContext();
   const [collapsedEntries, setCollapsedEntries] = useState(entries.map(() => false));
-  const [entryNames, setEntryNames] = useState(entries.map(() => 'New OCS'));
   const [isEditingName, setIsEditingName] = useState(entries.map(() => false));
 
   useEffect(() => {
@@ -231,9 +230,9 @@ export default function SpectraInputs() {
           isCone4Active: false,
         },
         selectedSpecies: null,
+        entryName: 'New OCS', // Add entryName property
       };
       setEntries([defaultEntry]);
-      setEntryNames(['New OCS']);
     }
   }, [entries, setEntries]);
 
@@ -248,7 +247,6 @@ export default function SpectraInputs() {
   const handleDeleteEntry = (index: number) => {
     setEntries(prev => prev.filter((_, i) => i !== index));
     setCollapsedEntries(prev => prev.filter((_, i) => i !== index));
-    setEntryNames(prev => prev.filter((_, i) => i !== index));
     setIsEditingName(prev => prev.filter((_, i) => i !== index));
   };
 
@@ -287,9 +285,9 @@ export default function SpectraInputs() {
                   isCone4Active: false,
                 },
                 selectedSpecies: null,
+                entryName: 'New OCS', // Add entryName property
               },
             ]);
-            setEntryNames([...entryNames, 'New OCS']);
           }}
         >
           Add Entry
@@ -303,17 +301,17 @@ export default function SpectraInputs() {
               key={index}
               entry={entry}
               index={index}
-              entryName={entryNames[index]}
+              entryName={entry.entryName} // Use entryName from entry
               isEditing={isEditingName[index]}
               isCollapsed={collapsedEntries[index]}
               dropdownOptions={dropdownOptions}
               spectralDB={spectralDB}
               onUpdate={handleUpdateEntry}
               onNameChange={(name, idx) => {
-                setEntryNames(prev => {
-                  const newNames = [...prev];
-                  newNames[idx] = name;
-                  return newNames;
+                setEntries(prev => {
+                  const newEntries = [...prev];
+                  newEntries[idx].entryName = name;
+                  return newEntries;
                 });
               }}
               onToggleEdit={(idx) => {
