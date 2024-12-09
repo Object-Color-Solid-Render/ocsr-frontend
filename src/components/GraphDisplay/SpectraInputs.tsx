@@ -7,15 +7,15 @@ import {
   Group,
   Text,
   Select,
-  Drawer,
   Collapse,
   Card,
   Title,
 } from '@mantine/core';
 import { useState, useEffect } from 'react';
-import { useAppContext } from '../AppLayout';
+import { SpectralDB, useAppContext } from '../AppLayout';
 import { IconEdit, IconTrash, IconChevronUp, IconChevronDown } from '@tabler/icons-react';
 import { OCSContext } from '../OCSContext';
+import React from 'react';
 
 interface SpectraEntryProps {
   entry: OCSContext;
@@ -24,7 +24,7 @@ interface SpectraEntryProps {
   isEditing: boolean;
   isCollapsed: boolean;
   dropdownOptions: string[];
-  spectralDB: any;
+  spectralDB: SpectralDB;
   onUpdate: (newEntry: OCSContext, index: number) => void;
   onNameChange: (name: string, index: number) => void;
   onToggleEdit: (index: number) => void;
@@ -58,13 +58,6 @@ function SpectraEntry({
     onUpdate(newEntry, index);
   };
 
-  const handleBoundsInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = event.target;
-    const newEntry = { ...entry };
-    newEntry.wavelengthBounds[name as 'min' | 'max'] = Number(value);
-    onUpdate(newEntry, index);
-  };
-
   const handleSpeciesChange = (value: string | null) => {
     const newEntry = { ...entry };
     newEntry.selectedSpecies = value;
@@ -91,7 +84,7 @@ function SpectraEntry({
 
   return (
     <Card padding="lg" style={{ backgroundColor: '#f5f5f7' }}>
-      <Group position="apart" align="center">
+      <Group align="center">
         {isEditing ? (
           <TextInput
             value={entryName}
@@ -102,21 +95,21 @@ function SpectraEntry({
         ) : (
           <Title order={4} style={{ color: '#1d1d1f' }}>{entryName}</Title>
         )}
-        <Group spacing="xs" style={{ marginLeft: 'auto' }}>
-          <Button variant="subtle" compact onClick={() => onToggleEdit(index)}>
+        <Group style={{ marginLeft: 'auto' }}>
+          <Button variant="subtle" onClick={() => onToggleEdit(index)}>
             <IconEdit size={16} />
           </Button>
-          <Button variant="subtle" compact onClick={() => onDelete(index)}>
+          <Button variant="subtle" onClick={() => onDelete(index)}>
             <IconTrash size={16} />
           </Button>
-          <Button variant="subtle" compact onClick={() => onToggleCollapse(index)}>
+          <Button variant="subtle"  onClick={() => onToggleCollapse(index)}>
             {isCollapsed ? <IconChevronDown size={16} /> : <IconChevronUp size={16} />}
           </Button>
         </Group>
       </Group>
       
       <Collapse in={!isCollapsed}>
-        <Text weight={500} size="md" mb="sm">
+        <Text size="md" mb="sm">
           Select Species
         </Text>
         <Select
@@ -125,17 +118,15 @@ function SpectraEntry({
           value={entry.selectedSpecies}
           onChange={handleSpeciesChange}
           searchable
-          nothingFound="No species found"
-          dropdownPosition="bottom"
           mb="md"
         />
 
-        <Text weight={500} size="md" mb="sm">
+        <Text size="md" mb="sm">
           Spectral Peaks (nm)
         </Text>
         {(['isCone1Active', 'isCone2Active', 'isCone3Active', 'isCone4Active'] as const).map(
           (coneKey, coneIndex) => (
-            <Group key={coneKey} position="apart" mb="sm">
+            <Group key={coneKey} mb="sm">
               <Text size="sm" style={{ minWidth: '60px' }}>
                 {`Cone ${coneIndex + 1}`}
               </Text>
@@ -210,8 +201,8 @@ export default function SpectraInputs() {
           isCone3Active: true,
           isCone4Active: false,
         },
-        selectedSpecies: null,
-        entryName: 'New OCS', // Add entryName property
+        selectedSpecies: 'Human (Trichromat)',
+        entryName: 'Human (Trichromat)', // Add entryName property
       };
       setEntries([defaultEntry]);
     }
@@ -241,7 +232,7 @@ export default function SpectraInputs() {
 
   return (
     <form onSubmit={handleSubmit} style={{ height: '100%' }}>
-      <Group position="apart" mb="md">
+      <Group mb="md">
         <Button type="submit">Submit</Button>
         <Button
           variant="default"
@@ -265,8 +256,8 @@ export default function SpectraInputs() {
                   isCone3Active: true,
                   isCone4Active: false,
                 },
-                selectedSpecies: null,
-                entryName: 'New OCS', // Add entryName property
+                selectedSpecies: "Human (Trichromat)",
+                entryName: "Human (Trichromat)", // Add entryName property
               },
             ]);
           }}
@@ -276,7 +267,7 @@ export default function SpectraInputs() {
       </Group>
 
       <div style={{ height: '100%', overflow: 'auto' }}>
-        <Stack spacing="xl">
+        <Stack>
           {entries.map((entry, index) => (
             <SpectraEntry
               key={index}

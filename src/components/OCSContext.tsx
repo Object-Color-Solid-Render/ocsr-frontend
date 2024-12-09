@@ -1,3 +1,4 @@
+import { BufferGeometry } from "three";
 
 // Define the OCSContext type (renamed from EntryParams)
 export type OCSContext = {
@@ -23,7 +24,7 @@ export type OCSContext = {
 
 // Define the OCSData type to group data from backend
 export type OCSData = {
-  geometry: THREE.BufferGeometry;
+  geometry: BufferGeometry;
   vertexShader: string;
   fragmentShader: string;
   wavelengths: number[];

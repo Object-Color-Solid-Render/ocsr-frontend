@@ -1,18 +1,14 @@
-import { Stack, Button, Card, Text} from "@mantine/core";
-import { useState } from "react";
-import DropdownContent from "../Dropdown/DropdownContent";
-import DropdownButton from "../Dropdown/DropdownButton";
+import { Card, Text} from "@mantine/core";
 import { useAppContext } from "../AppLayout";
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-
-
-const boxStyle = {
-    margin: 10,
-    padding: 5,
-};
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Legend, ResponsiveContainer } from 'recharts';
 
 // Create chart data from wavelengths and coneResponses
-const createChartData = (wavelengths: number[], coneResponses: any) => {
+const createChartData = (wavelengths: number[], coneResponses: {
+    coneResponse1: number[];
+    coneResponse2: number[];
+    coneResponse3: number[];
+    coneResponse4: number[];
+  }) => {
     return wavelengths.map((wavelength, index) => ({
       wavelength,  // X-axis value
       sResponse: coneResponses.coneResponse1[index], // Y-value for S Cone
@@ -23,7 +19,6 @@ const createChartData = (wavelengths: number[], coneResponses: any) => {
 };
 
 export default function GraphDisplay() {
-    const [open, setOpen] = useState(false);
     const { ocsDataArray, selectedEntryIndex } = useAppContext();
 
     const selectedIndex = selectedEntryIndex !== null ? selectedEntryIndex : 0;
@@ -38,8 +33,7 @@ export default function GraphDisplay() {
             {/* <DropdownButton open={open} setOpen={setOpen} leftDropdown={false}></DropdownButton> */}
             {/* <DropdownContent open={true} width={400}> */}
             <Card shadow="sm" padding="lg" radius="md" withBorder>
-                <Text size="lg" weight={500} mb="md">Cone Responses to Wavelengths</Text>
-                
+                <Text size="lg" mb="md">Cone Responses to Wavelengths</Text>
                 <ResponsiveContainer width="100%" height={300}>
                     <LineChart data={data}>
                         <CartesianGrid strokeDasharray="3 3" />
