@@ -25,10 +25,11 @@ type CustomMeshProps = {
   center: number[];
   rotationMatrix: THREE.Matrix4;
   index: number;
+  isSlice?: boolean;
 };
 
 // Component to render a custom mesh with shader material
-export function CustomMesh({ geometry, vertexShader, fragmentShader, center, rotationMatrix, index }: CustomMeshProps & { rotationMatrix: THREE.Matrix4 }) {
+export function CustomMesh({ geometry, vertexShader, fragmentShader, center, rotationMatrix, index, isSlice=false}: CustomMeshProps & { rotationMatrix: THREE.Matrix4 }) {
   const meshRef = useRef<THREE.Mesh>();
   const { clock } = useThree();
   const { setSelectedEntryIndex, sliceDimension, sliceVisible } = useAppContext();
@@ -64,8 +65,8 @@ export function CustomMesh({ geometry, vertexShader, fragmentShader, center, rot
           setSelectedEntryIndex(index);
         }}
       />
-      <axesHelper args={[1]} />
-      {sliceDimension === 2 && sliceVisible && <MovingPlane baseQuaternion={baseQuaternion}></MovingPlane>}
+      {!isSlice && <axesHelper args={[1]} />}
+      {!isSlice && sliceDimension === 2 && sliceVisible && <MovingPlane baseQuaternion={baseQuaternion}></MovingPlane>}
     </group>
   );
 }
