@@ -6,7 +6,8 @@ import {
   Title,
   ActionIcon,
   Drawer, // Added import
-  Button, // Added import
+  Button,
+  Box, // Added import
 } from '@mantine/core';
 import ObjectColorSolid from './ObjectColorSolid';
 import SliceDisplay from './SliceDisplay/SliceDisplay';
@@ -16,6 +17,8 @@ import { OCSContext, OCSData } from './OCSContext';
 import { IconMenu2 } from '@tabler/icons-react'; // Added import
 import { Link } from 'react-router-dom'; // Added import
 import { useDisclosure } from '@mantine/hooks'; // Add this import
+import { PLYExporter } from 'three/examples/jsm/exporters/PLYExporter.js'; // Add this import
+import * as THREE from 'three';
 
 import {
   createContext,
@@ -28,6 +31,7 @@ import {
 } from 'react';
 import React from 'react';
 import ocstudioLogo from '../ocstudio.svg';
+import DraggableSidebar from './SliceDisplay/SideBar';
 
 // Custom hook to get window dimensions
 const useWindowDimensions = () => {
@@ -111,6 +115,10 @@ export const DEFAULT_Q_PEAK = 560;
 const MIN_VISIBLE_WAVELENGTH = 390;
 const MAX_VISIBLE_WAVELENGTH = 700;
 
+const handleMouseDown = () => {
+  setIsDragging(true);
+};
+
 // Context provider component
 export const AppContextProvider = ({ children }: { children: ReactNode }) => {
   const [spectralDB, setSpectralDB] = useState<SpectralDB>({});
@@ -179,7 +187,98 @@ export const useAppContext = (): AppContextType => {
 export default function AppLayout() {
   const theme = useMantineTheme();
   const { setSpectralDB } = useAppContext();
-  const [sidebarOpened, setSidebarOpened] = useState(false);
+  const [sidebarOpened, setSidebarOpened] = useState(true);
+
+  // Draggable Sidebar States
+  const [sidebarWidth, setSidebarWidth] = useState(400); // Initial width in pixels
+  const [isDragging, setIsDragging] = useState(false); // Dragging state
+  const [sidebarHeight, setSidebarHeight] = useState(650); // Initial height in pixels
+  const [isDraggingHeight, setIsDraggingHeight] = useState(false); // Dragging state for height
+  
+  // Handle mouse down on resizer
+  const handleMouseDown = () => {
+    setIsDragging(true);
+  };
+
+  // Handle mouse move globally
+  const handleMouseMove = (e: MouseEvent) => {
+    if (isDragging) {
+      const newWidth = Math.max(150, Math.min(e.clientX, 600)); // Clamp between 150px and 600px
+      setSidebarWidth(newWidth);
+    }
+  };
+  // Handle mouse down on height resizer
+const handleMouseDownHeight = () => {
+  setIsDraggingHeight(true);
+};
+
+// Handle mouse move for height
+const handleMouseMoveHeight = (e: MouseEvent) => {
+  if (isDraggingHeight) {
+    const newHeight = Math.max(200, Math.min(e.clientY, window.innerHeight - 100)); // Clamp height
+    setSidebarHeight(newHeight);
+  }
+};
+
+// Handle mouse up for height
+const handleMouseUpHeight = () => {
+  if (isDraggingHeight) {
+    setIsDraggingHeight(false);
+  }
+};
+
+
+  // Handle mouse up globally
+  const handleMouseUp = () => {
+    if (isDragging) {
+      setIsDragging(false);
+    }
+  };
+
+  // Add global event listeners when dragging
+  useEffect(() => {
+    if (isDragging) {
+      window.addEventListener('mousemove', handleMouseMove);
+      window.addEventListener('mouseup', handleMouseUp);
+      // Prevent selecting text while dragging
+      document.body.style.cursor = 'col-resize';
+      document.body.style.userSelect = 'none';
+    } else {
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseup', handleMouseUp);
+      document.body.style.cursor = 'default';
+      document.body.style.userSelect = 'auto';
+    }
+
+    // Cleanup on unmount
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseup', handleMouseUp);
+      document.body.style.cursor = 'default';
+      document.body.style.userSelect = 'auto';
+    };
+  }, [isDragging]);
+
+  useEffect(() => {
+    if (isDraggingHeight) {
+      window.addEventListener('mousemove', handleMouseMoveHeight);
+      window.addEventListener('mouseup', handleMouseUpHeight);
+      document.body.style.cursor = 'row-resize';
+      document.body.style.userSelect = 'none'; // Prevent text selection
+    } else {
+      window.removeEventListener('mousemove', handleMouseMoveHeight);
+      window.removeEventListener('mouseup', handleMouseUpHeight);
+      document.body.style.cursor = 'default';
+      document.body.style.userSelect = 'auto';
+    }
+  
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMoveHeight);
+      window.removeEventListener('mouseup', handleMouseUpHeight);
+    };
+  }, [isDraggingHeight]);
+  
+
 
   // Fetch spectral database on mount
   useEffect(() => {
@@ -211,6 +310,44 @@ export default function AppLayout() {
       .catch(error => console.error('Error fetching or transforming data:', error));
   }, [setSpectralDB]);
 
+  const handleDownload = () => {
+    const exporter = new PLYExporter();
+
+    ocsDataArray.forEach((ocsData, index) => {
+      const geometry = ocsData.geometry;
+      const colors = geometry.attributes.color.array; // Get vertex colors
+      const material = new THREE.MeshBasicMaterial({ vertexColors: true });
+      const mesh = new THREE.Mesh(geometry, material);
+      const name = entries[index].entryName || `geometry${index}`;
+
+      // Ensure geometry has vertices and faces
+      if (geometry.attributes.position && geometry.index) {
+        // Add vertex colors to geometry
+        if (colors) {
+          geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+        }
+
+        exporter.parse(
+          mesh,
+          (result) => {
+            const blob = new Blob([result], { type: 'application/octet-stream' });
+            const url = URL.createObjectURL(blob);
+
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `${name}.ply`;
+            link.click();
+
+            URL.revokeObjectURL(url);
+          },
+          { binary: true }
+        );
+      } else {
+        console.error(`Geometry for ${name} is missing vertices or faces.`);
+      }
+    });
+  };
+
   return (
     <AppShell
       header={{ height: 50 }}
@@ -237,6 +374,13 @@ export default function AppLayout() {
             GitHub
           </Button>
           <Button
+            variant="subtle"
+            onClick={handleDownload}
+            style={{ marginRight: '10px' }}
+          >
+            Download
+          </Button>
+          <Button
             component={Link}
             to="/about"
             variant="subtle"
@@ -260,6 +404,7 @@ export default function AppLayout() {
       </AppShell.Aside>
 
       {/* Main content */}
+<<<<<<< HEAD
       <AppShell.Main>
         <Container my="xl" fluid>
           <div style={{ position: "absolute", width: "80%", height: "80%", display: "flex", justifyContent: "center", alignItems: "center", zIndex: 1 }}>
@@ -275,7 +420,89 @@ export default function AppLayout() {
             </Grid.Col>
           </Grid>
         </Container>
+=======
+      <AppShell.Main style={{height: '100%'}}>
+
+      <Container fluid style={{ display: 'flex', height: '100%' }}>
+          {/* Draggable Sidebar */}
+          <Box
+            style={{
+              width: sidebarWidth,
+              height: sidebarHeight,
+              backgroundColor: '#f8f9fa',
+              boxShadow: '2px 0 5px rgba(0,0,0,0.1)',
+              display: 'flex',
+              flexDirection: 'column',
+              position: 'relative', // For resizer positioning
+              transition: isDragging ? 'none' : 'width 0.2s ease', // Smooth transition when not dragging
+              overflow: 'scroll',
+              padding: "1%",
+              gap: "3%"
+            }}
+          >
+            {/* Sidebar Content */}
+            <GraphDisplay />
+            <SliceDisplay />
+
+            {/* Resizer width */}
+            <div
+              onMouseDown={handleMouseDown}
+              style={{
+                width: '5px',
+                cursor: 'col-resize',
+                backgroundColor: '#ccc',
+                height: '100%',
+                position: 'absolute',
+                top: 0,
+                right: 0,
+                zIndex: 10,
+              }}
+            />
+            {/* Resizer height */}
+            <div
+            onMouseDown={handleMouseDownHeight}
+            style={{
+              height: '5px',
+              cursor: 'row-resize',
+              backgroundColor: '#ccc',
+              width: '100%',
+              position: 'absolute',
+              bottom: 0,
+              left: 0,
+              zIndex: 10,
+            }}
+          />
+
+          </Box>
+
+          {/* Main Content Area */}
+          <Box
+            style={{
+              flex: 1,
+              padding: '20px',
+              position: 'relative',
+              overflow: 'auto',
+              height: '650px'
+            }}
+          >
+            <div
+              style={{
+                position: 'absolute',
+                width: '95%',
+                height: '100%',
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center',
+                zIndex: 1,
+              }}
+            >
+              <ObjectColorSolid />
+            </div>
+            {/* Additional Content Can Go Here */}
+          </Box>
+        </Container> 
+>>>>>>> 283a7551790c3ca7d50098ad9c72ab3991268ea2
       </AppShell.Main>
     </AppShell>
   );
-}
+};
