@@ -382,6 +382,13 @@ export default function ObjectColorSolid() {
             rotationMatrix={rotationMatrix}
           />
         ))}
+        <OrbitControls 
+                        target={[0, 0, 0]} 
+                         enableRotate={false} // Disable rotation
+                        enableZoom={true}    // Enable zoom
+                        enablePan={true}     // Enable pan
+                        zoomSpeed={1.0}
+                        panSpeed={1.0}/>
       </Canvas>
     </div>
   );
