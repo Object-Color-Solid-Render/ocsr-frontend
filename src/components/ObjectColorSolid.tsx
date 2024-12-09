@@ -65,7 +65,6 @@ export function CustomMesh({ geometry, vertexShader, fragmentShader, center, rot
           setSelectedEntryIndex(index);
         }}
       />
-      {!isSlice && <axesHelper args={[1]} />}
       {!isSlice && sliceDimension === 2 && sliceVisible && <MovingPlane baseQuaternion={baseQuaternion}></MovingPlane>}
     </group>
   );
