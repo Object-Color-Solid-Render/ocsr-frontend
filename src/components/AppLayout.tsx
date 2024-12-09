@@ -419,7 +419,8 @@ const handleMouseUpHeight = () => {
               position: 'relative', // For resizer positioning
               transition: isDragging ? 'none' : 'width 0.2s ease', // Smooth transition when not dragging
               overflow: 'scroll',
-              padding: "1%"
+              padding: "1%",
+              gap: "3%"
             }}
           >
             {/* Sidebar Content */}

@@ -67,7 +67,7 @@ export default function Slice() {
                         // geometry.setAttribute('normal', new THREE.Float32BufferAttribute(data.normals.flat(), 3));
                         geometry.setAttribute('color', new THREE.Float32BufferAttribute(data.colors.flat(), 3));
                         geometry.setIndex(data.indices.flat());
-                        geometry.translate(0, 1, 0);
+                        //geometry.translate(0, 1, 0);
                         newSliceDataArray.push({
                             geometry,
                             vertexShader: data.vertexShader,
@@ -106,7 +106,7 @@ export default function Slice() {
                     >
                         2D Slice
             </Button>
-            <div style={{ backgroundColor: '#f8f9ff', height: 300}}> {/* Needed to wrap around the canvas to provide a specified width/height */}
+            <div style={{ backgroundColor: '#c6c7cc'}}> {/* Needed to wrap around the canvas to provide a specified width/height */}
                 {!!sliceDataArray && 
                 <Canvas orthographic
                 camera={{
