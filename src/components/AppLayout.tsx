@@ -16,6 +16,8 @@ import { OCSContext, OCSData } from './OCSContext';
 import { IconMenu2 } from '@tabler/icons-react'; // Added import
 import { Link } from 'react-router-dom'; // Added import
 import { useDisclosure } from '@mantine/hooks'; // Add this import
+import { PLYExporter } from 'three/examples/jsm/exporters/PLYExporter.js'; // Add this import
+import * as THREE from 'three';
 
 import {
   createContext,
@@ -178,7 +180,7 @@ export const useAppContext = (): AppContextType => {
 // Main layout component
 export default function AppLayout() {
   const theme = useMantineTheme();
-  const { setSpectralDB } = useAppContext();
+  const { setSpectralDB, ocsDataArray, entries } = useAppContext(); // Include ocsDataArray and entries
   const [sidebarOpened, setSidebarOpened] = useState(false);
 
   // Fetch spectral database on mount
@@ -211,6 +213,44 @@ export default function AppLayout() {
       .catch(error => console.error('Error fetching or transforming data:', error));
   }, [setSpectralDB]);
 
+  const handleDownload = () => {
+    const exporter = new PLYExporter();
+
+    ocsDataArray.forEach((ocsData, index) => {
+      const geometry = ocsData.geometry;
+      const colors = geometry.attributes.color.array; // Get vertex colors
+      const material = new THREE.MeshBasicMaterial({ vertexColors: true });
+      const mesh = new THREE.Mesh(geometry, material);
+      const name = entries[index].entryName || `geometry${index}`;
+
+      // Ensure geometry has vertices and faces
+      if (geometry.attributes.position && geometry.index) {
+        // Add vertex colors to geometry
+        if (colors) {
+          geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+        }
+
+        exporter.parse(
+          mesh,
+          (result) => {
+            const blob = new Blob([result], { type: 'application/octet-stream' });
+            const url = URL.createObjectURL(blob);
+
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `${name}.ply`;
+            link.click();
+
+            URL.revokeObjectURL(url);
+          },
+          { binary: true }
+        );
+      } else {
+        console.error(`Geometry for ${name} is missing vertices or faces.`);
+      }
+    });
+  };
+
   return (
     <AppShell
       header={{ height: 50 }}
@@ -235,6 +275,13 @@ export default function AppLayout() {
             style={{ marginRight: '10px' }}
           >
             GitHub
+          </Button>
+          <Button
+            variant="subtle"
+            onClick={handleDownload}
+            style={{ marginRight: '10px' }}
+          >
+            Download
           </Button>
           <Button
             component={Link}
