@@ -96,6 +96,7 @@ export type EntryParams = {
     isCone3Active: boolean;
     isCone4Active: boolean;
   };
+  entryName: string; // Add entryName property
 };
 
 function MovingPlane( { baseQuaternion }: { baseQuaternion: THREE.Quaternion }) {
