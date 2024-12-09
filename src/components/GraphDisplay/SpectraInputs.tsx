@@ -130,25 +130,6 @@ function SpectraEntry({
           mb="md"
         />
 
-        <Group grow mb="md">
-          <TextInput
-            label="Min Wavelength"
-            name="min"
-            type="number"
-            value={entry.wavelengthBounds.min}
-            onChange={handleBoundsInputChange}
-            required
-          />
-          <TextInput
-            label="Max Wavelength"
-            name="max"
-            type="number"
-            value={entry.wavelengthBounds.max}
-            onChange={handleBoundsInputChange}
-            required
-          />
-        </Group>
-
         <Text weight={500} size="md" mb="sm">
           Spectral Peaks (nm)
         </Text>
