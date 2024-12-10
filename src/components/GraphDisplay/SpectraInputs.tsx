@@ -155,14 +155,18 @@ function SpectraEntry({
             </Group>
           )
         )}
+        <Text size="md" mb="sm">
+            Pigment Template Function
+        </Text>
         <Select
-          label="Pigment Template Function"
           data={['Govardovskii', 'Lamb']}
           value={entry.pigmentTemplateFunction}
           onChange={(value) =>
             onUpdate({ ...entry, pigmentTemplateFunction: value || "Lamb" }, index)
           }
         />
+        <div style={{ marginBottom: '15px' }}>
+        </div>
         <Checkbox
           label="Max Basis"
           checked={entry.isMaxBasis}
