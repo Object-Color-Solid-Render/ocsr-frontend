@@ -178,7 +178,7 @@ export const useAppContext = (): AppContextType => {
 
 // Main layout component
 export default function AppLayout() {
-  const { setSpectralDB } = useAppContext();
+  const { setSpectralDB, ocsDataArray, entries } = useAppContext();
   const [sidebarOpened, setSidebarOpened] = useState(true);
 
   // Draggable Sidebar States
@@ -326,7 +326,6 @@ const handleMouseUpHeight = () => {
 
   const handleDownload = () => {
     const exporter = new PLYExporter();
-    const { ocsDataArray, entries } = useAppContext();
 
     ocsDataArray.forEach((ocsData, index) => {
       const geometry = ocsData.geometry;
