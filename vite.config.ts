@@ -7,7 +7,7 @@ export default defineConfig({
   server: {
     proxy: {
       '/ocs': {
-        target: 'http://localhost:5050', // Backend URL
+        target: 'http://10.41.8.139:5050', // 'http://localhost:5050', // Backend URL
         changeOrigin: true,
         secure: false,
       },
