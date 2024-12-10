@@ -1,43 +1,32 @@
-import { Stack, Button, Flex} from "@mantine/core";
+import { Button } from "@mantine/core";
 import { useEffect, useState } from "react";
-import DropdownContent from "../Dropdown/DropdownContent";
-import DropdownButton from "../Dropdown/DropdownButton";
 import { useAppContext } from "../AppLayout";
 import * as THREE from 'three';
 import { CustomMesh, OcsData, getGridPositions, UpdateCamera } from "../ObjectColorSolid";
 import { Canvas, useThree } from "@react-three/fiber";
-import { OrbitControls, OrthographicCamera } from "@react-three/drei";
-import { Geometry } from "tabler-icons-react";
-
-const boxStyle = {
-    width: 250,
-    height: 250,
-    margin: 'auto'
-};
+import { OrbitControls } from "@react-three/drei";
+import { OCSData } from "../OCSContext";
 
 export default function Slice() {
-    const [open, setOpen] = useState(false);
     const [sliceDataArray, setSliceDataArray] = useState<OcsData[]>([]);
     const { sliceVisible, setSliceVisible, setSliceDimension, slicePlane, sliceSwitch, entries, fetchTrigger } = useAppContext()
 
-    const [dimensions, setDimensions] = useState({
-        width: window.innerWidth,
-        height: window.innerHeight,
-      });
+    // const [dimensions, setDimensions] = useState({
+    //     width: window.innerWidth,
+    //     height: window.innerHeight,
+    //   });
     
-    useEffect(() => {
-    const handleResize = () => {
-        setDimensions({
-        width: window.innerWidth,
-        height: window.innerHeight,
-        });
-    };
+    // useEffect(() => {
+    // const handleResize = () => {
+    //     setDimensions({
+    //     width: window.innerWidth,
+    //     height: window.innerHeight,
+    //     });
+    // };
 
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-    }, []);
-    
-    const aspect = dimensions.width / dimensions.height;
+    // window.addEventListener('resize', handleResize);
+    // return () => window.removeEventListener('resize', handleResize);
+    // }, []);
 
     useEffect(() => {
         // Skip the first initial render 
@@ -59,9 +48,9 @@ export default function Slice() {
                     return response.json();
                 })
                 .then(dataArray => {
-                    const newSliceDataArray = []
+                    const newSliceDataArray: OCSData[] = []
                     
-                    dataArray.forEach((data: any, index: number) => {
+                    dataArray.forEach((data: any, _index: number) => {
                         const geometry = new THREE.BufferGeometry();
                         geometry.setAttribute('position', new THREE.Float32BufferAttribute(data.vertices.flat(), 3));
                         // geometry.setAttribute('normal', new THREE.Float32BufferAttribute(data.normals.flat(), 3));
@@ -72,12 +61,10 @@ export default function Slice() {
                             geometry,
                             vertexShader: data.vertexShader,
                             fragmentShader: data.fragmentShader
-                        });
+                        } as OCSData);
                     })     
-
                     setSliceDataArray(newSliceDataArray)  
                     console.log(newSliceDataArray)  
-                    setOpen(true)      
                 })
                 .catch(error => console.error('Error fetching data:', error));
             }
@@ -130,7 +117,6 @@ export default function Slice() {
                             vertexShader={sliceData.vertexShader}
                             fragmentShader={sliceData.fragmentShader}
                             rotationMatrix={new THREE.Matrix4()}
-                            scale={5}
                             center={gridPositions[index]}
                             index={index}
                             isSlice={true}

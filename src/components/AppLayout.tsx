@@ -1,11 +1,7 @@
 import {
   AppShell,
   Container,
-  Grid,
-  useMantineTheme,
-  Title,
   ActionIcon,
-  Drawer, // Added import
   Button,
   Box, // Added import
 } from '@mantine/core';
@@ -16,7 +12,6 @@ import SpectraInputs from './GraphDisplay/SpectraInputs';
 import { OCSContext, OCSData } from './OCSContext';
 import { IconMenu2 } from '@tabler/icons-react'; // Added import
 import { Link } from 'react-router-dom'; // Added import
-import { useDisclosure } from '@mantine/hooks'; // Add this import
 import { PLYExporter } from 'three/examples/jsm/exporters/PLYExporter.js'; // Add this import
 import * as THREE from 'three';
 
@@ -29,9 +24,7 @@ import {
   useEffect,
   useState,
 } from 'react';
-import React from 'react';
 import ocstudioLogo from '../ocstudio.svg';
-import DraggableSidebar from './SliceDisplay/SideBar';
 
 // Custom hook to get window dimensions
 const useWindowDimensions = () => {
@@ -51,9 +44,7 @@ const useWindowDimensions = () => {
   return windowDimensions;
 };
 
-
-
-type SpectralDBEntry = {
+export type SpectralDBEntry = {
   scientificName: string;
   phylum: string;
   className: string;
@@ -72,7 +63,7 @@ type Plane = {
   d: number;
 }
 
-type SpectralDB = Record<string, SpectralDBEntry>;
+export type SpectralDB = Record<string, SpectralDBEntry>;
 
 // Type definitions for context values
 type AppContextType = {
@@ -120,10 +111,6 @@ export const DEFAULT_L_PEAK = 566;
 export const DEFAULT_Q_PEAK = 560;
 const MIN_VISIBLE_WAVELENGTH = 390;
 const MAX_VISIBLE_WAVELENGTH = 700;
-
-const handleMouseDown = () => {
-  setIsDragging(true);
-};
 
 // Context provider component
 export const AppContextProvider = ({ children }: { children: ReactNode }) => {
@@ -191,7 +178,6 @@ export const useAppContext = (): AppContextType => {
 
 // Main layout component
 export default function AppLayout() {
-  const theme = useMantineTheme();
   const { setSpectralDB } = useAppContext();
   const [sidebarOpened, setSidebarOpened] = useState(true);
 
@@ -340,6 +326,7 @@ const handleMouseUpHeight = () => {
 
   const handleDownload = () => {
     const exporter = new PLYExporter();
+    const { ocsDataArray, entries } = useAppContext();
 
     ocsDataArray.forEach((ocsData, index) => {
       const geometry = ocsData.geometry;

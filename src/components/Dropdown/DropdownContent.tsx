@@ -1,5 +1,5 @@
-import { Paper, rgba, Collapse, ActionIcon } from "@mantine/core";
-import React from "react";
+import { Paper, Collapse, ActionIcon } from "@mantine/core";
+import React, { Dispatch, SetStateAction } from "react";
 import { IconX } from "@tabler/icons-react";
 
 type DropdownContentProps = {
@@ -13,10 +13,10 @@ type DropdownContentProps = {
     isWhite?: boolean,
 }
 
-const paperStyle = (open: boolean, width: number, opacity: number, height:number, isWhite: boolean) => {
+const paperStyle = (open: boolean, width: number, isWhite: boolean) => {
     return { 
         width: open ? width : 0, // Collapses the div
-        height: open ? height : 0,
+        // height: open ? height : 0,
         borderRadius: 10, // Full circular shape
         zIndex: 999,
         transition: 'width 0.7s ease',
@@ -25,11 +25,11 @@ const paperStyle = (open: boolean, width: number, opacity: number, height:number
     }
 }
 
-export default function DropdownContent({ children, open, setOpen=() => {}, width=200, height=200, xButton=false, opacity=0.2, isWhite=false } : DropdownContentProps) {
+export default function DropdownContent({ children, open, setOpen=() => {}, width=200, xButton=false, isWhite=false } : DropdownContentProps) {
     return <>
         <Paper
             shadow="xl"
-            style={paperStyle(open, width, opacity, isWhite)}
+            style={paperStyle(open, width, isWhite)}
         >
             <Collapse 
                 in={open}

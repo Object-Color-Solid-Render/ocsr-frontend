@@ -3,9 +3,10 @@ import { Canvas, useFrame, extend, useThree } from '@react-three/fiber';
 import { OrbitControls, shaderMaterial } from '@react-three/drei';
 import * as THREE from 'three';
 import { useAppContext } from './AppLayout';
-import { Button, Loader, Modal } from '@mantine/core'; // Import Loader and Modal components from Mantine
-import { OCSContext, OCSData } from '../OCSContext';
+import { Loader, Modal } from '@mantine/core'; // Import Loader and Modal components from Mantine
+import { OCSData } from './OCSContext';
 import { useDrag } from '@use-gesture/react';
+import { Vector3 } from 'three';
 
 // Define custom shader material with uniforms
 const CustomShaderMaterial = shaderMaterial(
@@ -22,7 +23,7 @@ type CustomMeshProps = {
   geometry: THREE.BufferGeometry;
   vertexShader: string;
   fragmentShader: string;
-  center: number[];
+  center: Vector3;
   rotationMatrix: THREE.Matrix4;
   index: number;
   isSlice?: boolean;
@@ -31,7 +32,6 @@ type CustomMeshProps = {
 // Component to render a custom mesh with shader material
 export function CustomMesh({ geometry, vertexShader, fragmentShader, center, rotationMatrix, index, isSlice=false}: CustomMeshProps & { rotationMatrix: THREE.Matrix4 }) {
   const meshRef = useRef<THREE.Mesh>();
-  const { clock } = useThree();
   const { setSelectedEntryIndex, sliceDimension, sliceVisible } = useAppContext();
 
   // Create material instance and set shaders
@@ -102,7 +102,7 @@ export type EntryParams = {
 };
 
 function MovingPlane( { baseQuaternion }: { baseQuaternion: THREE.Quaternion }) {
-  const planeRef = useRef();
+  const planeRef = useRef<THREE.Mesh | null>(null);
   const normalRef = useRef(new THREE.Vector3(-1, 1, 0).normalize()); // Initial normal vector
   const { slicePlane, setSlicePlane } = useAppContext()
 
@@ -167,15 +167,15 @@ function MovingPlane( { baseQuaternion }: { baseQuaternion: THREE.Quaternion }) 
 // Component to update the camera on resize
 export function UpdateCamera() {
   const { camera, size } = useThree();
-
+  const orthoCamera = camera as THREE.OrthographicCamera;
   useEffect(() => {
     const updateCamera = () => {
       const aspect = size.width / size.height;
-      camera.left = aspect * -1;
-      camera.right = aspect * 1;
-      camera.top = 1;
-      camera.bottom = -1;
-      camera.updateProjectionMatrix();
+      orthoCamera.left = aspect * -1;
+      orthoCamera.right = aspect * 1;
+      orthoCamera.top = 1;
+      orthoCamera.bottom = -1;
+      orthoCamera.updateProjectionMatrix();
     };
     updateCamera();
   }, [camera, size]);
@@ -190,16 +190,13 @@ export const getGridPositions = (dataArray: OcsData[]) => {
       const rows = Math.ceil(dataArray.length / cols);
       const col = index % cols;
       const row = Math.floor(index / cols);
-      return [(col - (cols - 1) / 2) * 1.5, (row - (rows - 1) / 2) * 1.5, 0];
+      return new Vector3(col - (cols - 1) / 2 * 1.5, (row - (rows - 1) / 2) * 1.5, 0);
     });
-
-
 }
 
 // Main component to render the Object Color Solid
 export default function ObjectColorSolid() {
   const [rotationMatrix, setRotationMatrix] = useState(new THREE.Matrix4());
-  const [dragging, setDragging] = useState(false);
   const [loading, setLoading] = useState(false); // State to manage loading
   const [error, setError] = useState<string | null>(null); // State to manage error messages
   const [errorDetails, setErrorDetails] = useState<string | null>(null); // State to manage detailed error messages
@@ -208,7 +205,6 @@ export default function ObjectColorSolid() {
     setFetchTrigger,
     entries,
     setEntries,
-    sliceDimension,
     sliceVisible,
     setSliceVisible,
     sliceSwitch,
@@ -220,6 +216,8 @@ export default function ObjectColorSolid() {
   // Add a default entry on component mount
   useEffect(() => {
     const defaultEntry = {
+      selectedSpecies: "Human (Trichromat)",
+      entryName: "Human (Trichromat)",
       wavelengthBounds: { min: 390, max: 700 },
       omitBetaBand: true,
       isMaxBasis: false,
@@ -320,9 +318,9 @@ export default function ObjectColorSolid() {
   });
 
   const gridPositions = getGridPositions(ocsDataArray)
-
   return (
-    <div {...bind()} style={{ width: '100%', height: '100%', position: 'relative' }}>
+    // @ts-ignore
+    <div { ...bind() } style={{ width: '100%', height: '100%', position: 'relative' }}>
       {loading && (
         <div style={{
           position: 'absolute',
@@ -369,9 +367,7 @@ export default function ObjectColorSolid() {
             setSliceVisible(false)
             setSliceSwitch(sliceSwitch + 1) // Trigger update in the slice display
           }
-          setDragging(true)
         }}
-        onPointerUp={() => setDragging(false)}
       >
         <UpdateCamera />
         {ocsDataArray.map((ocsData, index) => (
