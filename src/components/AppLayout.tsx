@@ -44,9 +44,13 @@ const useWindowDimensions = () => {
   return windowDimensions;
 };
 
-
 export type SpectralDBEntry = {
   scientificName: string;
+  phylum: string;
+  className: string;
+  order: string;
+  pigmentTemplateFunction: string;
+  chromophores: string;
   peaks: number[];
   source: string;
   note: string;
@@ -267,12 +271,10 @@ const handleMouseUpHeight = () => {
   }, [isDraggingHeight]);
   
 
-
   // Fetch spectral database on mount
   useEffect(() => {
-    
     console.log("Fetching DB data...");
-  
+
     fetch(`http://localhost:5050/get_spectral_db`)
       .then((response) => {
         if (!response.ok) throw new Error('Failed to fetch data');
@@ -286,9 +288,32 @@ const handleMouseUpHeight = () => {
 
         // Transform array into a SpectralDB map
         const spectralDB: SpectralDB = data.reduce((acc, item) => {
-          if (Array.isArray(item)) {
-            const [commonName, scientificName, peaks, source, note] = item;
-            acc[commonName] = { scientificName, peaks, source, note };
+          if (item && typeof item === 'object') {
+            const {
+              common_name: commonName,
+              scientific_name: scientificName,
+              phylum,
+              class: className,
+              order,
+              template: pigmentTemplateFunction,
+              chromophores,
+              lambda_max_values: peaks,
+              source,
+              note,
+            } = item;
+
+            // Map data to SpectralDBEntry structure
+            acc[commonName] = {
+              scientificName,
+              phylum,
+              className,
+              order,
+              pigmentTemplateFunction,
+              chromophores,
+              peaks: peaks.filter((peak) => peak !== null), // Ensure peaks is an array of numbers
+              source,
+              note,
+            };
           }
           return acc;
         }, {});
@@ -297,6 +322,7 @@ const handleMouseUpHeight = () => {
       })
       .catch(error => console.error('Error fetching or transforming data:', error));
   }, [setSpectralDB]);
+
 
   const handleDownload = () => {
     const exporter = new PLYExporter();

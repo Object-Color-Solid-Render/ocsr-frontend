@@ -5,6 +5,7 @@ export type OCSContext = {
   wavelengthBounds: { min: number; max: number };
   omitBetaBand: boolean;
   isMaxBasis: boolean;
+  pigmentTemplateFunction: string;
   wavelengthSampleResolution: number;
   spectralPeaks: {
     peakWavelength1: number;
