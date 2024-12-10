@@ -184,14 +184,14 @@ export function UpdateCamera() {
 }
 
 // Calculate grid positions for geometries
-export const getGridPositions = (dataArray: OcsData[]) => { 
+export const getGridPositions = (dataArray: OcsData[], spacing: number = 1.8) => { 
   return dataArray.map((_, index) => {
-      const cols = Math.ceil(Math.sqrt(dataArray.length));
-      const rows = Math.ceil(dataArray.length / cols);
-      const col = index % cols;
-      const row = Math.floor(index / cols);
-      return new Vector3(col - (cols - 1) / 2 * 1.5, (row - (rows - 1) / 2) * 1.5, 0);
-    });
+    const cols = Math.ceil(Math.sqrt(dataArray.length));
+    const rows = Math.ceil(dataArray.length / cols);
+    const col = index % cols;
+    const row = Math.floor(index / cols);
+    return new Vector3((col - (cols - 1) / 2) * spacing, (row - (rows - 1) / 2) * spacing, 0);
+  });
 }
 
 // Main component to render the Object Color Solid
