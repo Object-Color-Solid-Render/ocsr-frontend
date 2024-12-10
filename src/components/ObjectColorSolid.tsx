@@ -84,6 +84,7 @@ export type EntryParams = {
   wavelengthBounds: { min: number; max: number };
   omitBetaBand: boolean;
   isMaxBasis: boolean;
+  pigmentTemplateFunction: string;
   wavelengthSampleResolution: number;
   spectralPeaks: {
     peakWavelength1: number;
@@ -222,12 +223,13 @@ export default function ObjectColorSolid() {
       wavelengthBounds: { min: 390, max: 700 },
       omitBetaBand: true,
       isMaxBasis: false,
+      pigmentTemplateFunction: 'Lamb',
       wavelengthSampleResolution: 20,
       spectralPeaks: {
-        peakWavelength1: 455,
+        peakWavelength1: 421,
         peakWavelength2: 543,
-        peakWavelength3: 566,
-        peakWavelength4: 560,
+        peakWavelength3: 560,
+        peakWavelength4: 566,
       },
       activeCones: {
         isCone1Active: true,
@@ -255,6 +257,7 @@ export default function ObjectColorSolid() {
       params.append(`entries[${index}][maxWavelength]`, entry.wavelengthBounds.max.toString());
       params.append(`entries[${index}][omitBetaBand]`, entry.omitBetaBand.toString());
       params.append(`entries[${index}][isMaxBasis]`, entry.isMaxBasis.toString());
+      params.append(`entries[${index}][pigmentTemplateFunction]`, entry.pigmentTemplateFunction.toString());
       params.append(`entries[${index}][wavelengthSampleResolution]`, entry.wavelengthSampleResolution.toString());
       params.append(`entries[${index}][peakWavelength1]`, entry.spectralPeaks.peakWavelength1.toString());
       params.append(`entries[${index}][peakWavelength2]`, entry.spectralPeaks.peakWavelength2.toString());

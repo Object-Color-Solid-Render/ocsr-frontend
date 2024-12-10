@@ -164,7 +164,14 @@ function SpectraEntry({
             </Group>
           )
         )}
-
+        <Select
+          label="Pigment Template Function"
+          data={['Govardovskii', 'Lamb']}
+          value={entry.pigmentTemplateFunction}
+          onChange={(value) =>
+            onUpdate({ ...entry, pigmentTemplateFunction: value || "Lamb" }, index)
+          }
+        />
         <Checkbox
           label="Max Basis"
           checked={entry.isMaxBasis}
@@ -197,12 +204,13 @@ export default function SpectraInputs() {
         wavelengthBounds: { min: 390, max: 700 },
         omitBetaBand: true,
         isMaxBasis: false,
+        pigmentTemplateFunction: "Lamb",
         wavelengthSampleResolution: 20,
         spectralPeaks: {
-          peakWavelength1: 455,
+          peakWavelength1: 421,
           peakWavelength2: 543,
-          peakWavelength3: 566,
-          peakWavelength4: 560,
+          peakWavelength3: 560,
+          peakWavelength4: 566,
         },
         activeCones: {
           isCone1Active: true,
@@ -252,12 +260,13 @@ export default function SpectraInputs() {
                 wavelengthBounds: { min: 390, max: 700 },
                 omitBetaBand: true,
                 isMaxBasis: false,
+                pigmentTemplateFunction: "Lamb",
                 wavelengthSampleResolution: 20,
                 spectralPeaks: {
-                  peakWavelength1: 455,
+                  peakWavelength1: 421,
                   peakWavelength2: 543,
-                  peakWavelength3: 566,
-                  peakWavelength4: 560,
+                  peakWavelength3: 560,
+                  peakWavelength4: 566,
                 },
                 activeCones: {
                   isCone1Active: true,
